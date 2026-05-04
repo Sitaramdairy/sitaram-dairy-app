@@ -1,1511 +1,2457 @@
+```html
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Sitaram Dairy PRO</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sitaram Dairy App PRO - Secured</title>
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  
+  <style>
+    /* =========================================
+       1. PREMIUM APP VARIABLES & CORE DESIGN
+    ========================================= */
+    :root {
+      --primary-blue: #1565C0;
+      --light-bg: #f4f7fa;
+      --card-bg: #ffffff;
+      --text-main: #111827;
+      --text-muted: #6b7280;
+      --success-green: #10b981;
+      --danger-red: #dc2626;
+      --border-color: #e5e7eb;
+      --whatsapp-green: #25D366;
+      --cloud-blue: #0ea5e9;
+    }
 
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    body.dark-mode {
+      --primary-blue: #1e3a8a;
+      --light-bg: #121212;
+      --card-bg: #1e1e1e;
+      --text-main: #f3f4f6;
+      --text-muted: #9ca3af;
+      --border-color: #374151;
+    }
 
-    <style>
-        /* =========================================
-           1. PREMIUM APP VARIABLES & CORE DESIGN
-           ========================================= */
-        :root { --primary-blue: #0b3d91; --light-bg: #f4f7fa; --card-bg: #ffffff; --text-main: #1a1a1a; --text-muted: #6b7280; --success-green: #10b981; --danger-red: #ef4444; --border-color: #e5e7eb; --whatsapp-green: #25D366; --cloud-blue: #0ea5e9; }
-        body.dark-mode { --primary-blue: #1e3a8a; --light-bg: #121212; --card-bg: #1e1e1e; --text-main: #f3f4f6; --text-muted: #9ca3af; --border-color: #374151; }
-        
-        /* FIX FOR SCROLLING & PULL-TO-REFRESH */
-        html, body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--light-bg); color: var(--text-main); margin: 0; padding: 0; overflow-x: hidden; overflow-y: auto; display: flex; flex-direction: column; height: 100vh; width: 100vw; overscroll-behavior-y: none; }
-        
-        /* =========================================
-           2. TOP HEADER
-           ========================================= */
-        header { background-color: var(--primary-blue); color: white; padding: 15px 20px 25px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
-        header h1 { margin: 0; font-size: 1.4rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-        .cloud-indicator { font-size: 0.8rem; color: #ffffff; background: rgba(255,255,255,0.2); padding: 4px 8px; border-radius: 12px; font-weight: normal; }
-        
-        /* =========================================
-           3. SIDEBAR MENU
-           ========================================= */
-        .sidebar-overlay { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.5); z-index: 998; opacity: 0; transition: opacity 0.3s; }
-        .sidebar { position: fixed; top: 0; left: -280px; width: 280px; height: 100%; background: var(--card-bg); z-index: 999; transition: left 0.3s ease; box-shadow: 2px 0 10px rgba(0,0,0,0.1); display: flex; flex-direction: column; will-change: left; }
-        .sidebar-header { background: var(--primary-blue); color: white; padding: 30px 20px; }
-        .sidebar-menu { list-style: none; padding: 0; margin: 0; overflow-y: auto; overscroll-behavior-y: contain; touch-action: pan-y; }
-        .sidebar-menu li { padding: 15px 20px; font-size: 1.05rem; font-weight: 600; color: var(--text-main); border-bottom: 1px solid var(--border-color); cursor: pointer; display: flex; align-items: center; gap: 15px; }
-        .sidebar-menu li:active { background-color: var(--light-bg); }
-        
-        /* =========================================
-           4. APP BODY & SLIDING PAGES
-           ========================================= */
-        .app-body { flex-grow: 1; position: relative; overflow: hidden; margin-top: -15px; background-color: var(--light-bg); border-radius: 15px 15px 0 0; }
-        .slide-wrapper { display: flex; flex-wrap: nowrap; width: 400%; height: 100%; transition: transform 0.3s ease-in-out; }
-        .page { flex: 0 0 25%; width: 25%; height: 100%; padding: 15px; box-sizing: border-box; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; padding-bottom: 90px; }
-        .page::-webkit-scrollbar { display: none; }
-        
-        /* =========================================
-           5. DASHBOARD CARDS & STATS
-           ========================================= */
-        .main-card { background: var(--card-bg); border-radius: 16px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .month-selector { display: flex; justify-content: center; align-items: center; color: var(--primary-blue); font-weight: bold; margin-bottom: 20px; }
-        .month-btn { cursor: pointer; padding: 5px 15px; background: #e0e7ff; border-radius: 8px; user-select: none; }
-        .month-btn:active { background: #c7d2fe; }
-        .month-text { margin: 0 15px; min-width: 120px; text-align: center; }
-        .stats-row { display: flex; justify-content: space-between; margin-bottom: 15px; text-align: left; }
-        .stat-item { flex: 1; }
-        .stat-label { font-size: 0.85rem; color: var(--text-muted); display: block; margin-bottom: 4px; }
-        .stat-value { font-size: 1.1rem; font-weight: bold; }
-        
-        /* =========================================
-           6. BUTTONS & INPUTS
-           ========================================= */
-        .btn-add-entry { background-color: var(--primary-blue); color: white; border: none; width: 100%; padding: 14px; border-radius: 12px; font-size: 1.1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 10px rgba(11, 61, 145, 0.3); }
-        .quick-actions { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
-        .action-btn { background: var(--card-bg); border: none; border-radius: 12px; padding: 12px; flex: 1; display: flex; flex-direction: column; align-items: center; gap: 5px; font-size: 0.85rem; font-weight: 600; color: var(--text-main); box-shadow: 0 2px 8px rgba(0,0,0,0.04); cursor: pointer; }
-        .search-bar { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-main); margin-bottom: 20px; font-size: 1rem; box-sizing: border-box; }
-        .section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; font-size: 0.9rem; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--border-color); background: var(--light-bg); color: var(--text-main); box-sizing: border-box; font-family: inherit; }
-        
-        /* =========================================
-           7. LIST ITEMS (KHATA / CUSTOMERS)
-           ========================================= */
-        .khata-list { list-style: none; padding: 0; margin: 0; }
-        .khata-item { background: var(--card-bg); border-radius: 12px; padding: 15px; margin-bottom: 12px; display: flex; align-items: center; border: 1px solid var(--border-color); }
-        .shift-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; justify-content: center; align-items: center; margin-right: 12px; font-size: 1.2rem; }
-        .shift-morning { background: #fff7ed; color: #f97316; }
-        .shift-evening { background: #eff6ff; color: #3b82f6; }
-        .entry-amount { text-align: right; font-weight: bold; color: var(--success-green); min-width: 70px; }
-        .entry-amount.unpaid { color: var(--danger-red); }
-        .pay-status { font-size: 0.75rem; padding: 3px 6px; border-radius: 4px; font-weight: bold; display: inline-block; margin-left: 5px; }
-        .status-paid { background: #dcfce7; color: #166534; border: 1px solid #166534; }
-        .status-due { background: #fee2e2; color: #991b1b; border: 1px solid #991b1b; }
-        
-        /* =========================================
-           8. CALENDAR VIEW
-           ========================================= */
-        .calendar-container { background: var(--card-bg); border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); margin-bottom: 15px; }
-        .calendar-header { background: var(--primary-blue); color: white; text-align: center; padding: 10px; font-weight: bold; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); background: var(--border-color); gap: 1px; }
-        .cal-header-cell { text-align: center; font-size: 0.7rem; font-weight: bold; padding: 8px; background: var(--light-bg); }
-        .cal-cell { background: var(--card-bg); min-height: 55px; padding: 2px; }
-        .cal-cell.empty { background: var(--light-bg); }
-        .cal-cell.today { border: 2px solid var(--primary-blue); background: #eff6ff; }
-        .cal-date { font-size: 0.75rem; text-align: right; color: var(--text-muted); }
-        .cal-data { font-size: 0.6rem; text-align: center; font-weight: bold; color: var(--success-green); line-height: 1.1; }
-        .cal-data.gap { color: var(--danger-red); }
-        
-        /* =========================================
-           9. BOTTOM NAVIGATION
-           ========================================= */
-        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); display: flex; box-shadow: 0 -4px 10px rgba(0,0,0,0.05); z-index: 20; }
-        .nav-item { flex: 1; text-align: center; padding: 12px 0; color: var(--text-muted); font-weight: 600; font-size: 0.8rem; cursor: pointer; }
-        .nav-item.active { color: var(--primary-blue); border-top: 3px solid var(--primary-blue); background: var(--light-bg); }
-        
-        /* =========================================
-           10. MODALS & POPUPS
-           ========================================= */
-        .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: flex-end; justify-content: center; }
-        .modal-content { background: var(--card-bg); width: 100%; max-height: 90vh; border-radius: 20px 20px 0 0; padding: 20px; box-sizing: border-box; overflow-y: auto; animation: slideUp 0.3s; }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        .visual-area { height: 180px; display: flex; justify-content: center; align-items: center; margin: 15px 0; }
-        .pay-method-group { display: flex; gap: 10px; margin: 10px 0; justify-content: center; }
-        .pay-btn { flex: 1; max-width: 120px; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); font-weight: bold; background: var(--light-bg); color: var(--text-main); cursor: pointer; }
-        .pay-btn.active { border: 2px solid var(--primary-blue); background: #eff6ff; color: var(--primary-blue); }
-        .cust-nav-tabs { display: flex; border-bottom: 1px solid var(--border-color); margin: 10px 0 15px 0; }
-        .cust-nav-tab { flex: 1; text-align: center; padding: 10px; font-weight: bold; color: var(--text-muted); cursor: pointer; }
-        .cust-nav-tab.active { color: var(--primary-blue); border-bottom: 3px solid var(--primary-blue); background: var(--light-bg); }
-        
-        /* =========================================
-           11. TOAST NOTIFICATION
-           ========================================= */
-        #toastBox { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 12px 24px; border-radius: 30px; font-weight: bold; font-size: 0.95rem; z-index: 9999; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.3); white-space: nowrap; text-align: center; animation: fadeInOut 3s; }
-        .toast-success { background-color: var(--success-green) !important; }
-        .toast-error { background-color: var(--danger-red) !important; }
-        @keyframes fadeInOut { 0% { opacity: 0; bottom: 60px; } 15% { opacity: 1; bottom: 80px; } 85% { opacity: 1; bottom: 80px; } 100% { opacity: 0; bottom: 60px; } }
-        
-        /* =========================================
-           12. LOGIN SCREEN CSS
-           ========================================= */
-        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--primary-blue); z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .login-box { background: white; padding: 30px; border-radius: 15px; text-align: center; width: 80%; max-width: 320px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-        .login-box input { width: 100%; padding: 15px; margin: 20px 0; border: 2px solid var(--border-color); border-radius: 10px; font-size: 1.5rem; text-align: center; letter-spacing: 8px; box-sizing: border-box; font-weight: bold; }
-        .login-box input:focus { outline: none; border-color: var(--primary-blue); }
-        
-        /* MODAL FOR LONG PRESS IMAGE */
-        #imageModal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 10000; justify-content: center; align-items: center; flex-direction: column; padding: 20px; box-sizing: border-box; }
-        #modalImage { max-width: 100%; max-height: 70vh; background: white; border-radius: 8px; box-shadow: 0 4px 20px rgba(0,0,0,0.5); object-fit: contain; }
-        .modal-text { color: #fff; margin-bottom: 20px; font-size: 1.1em; text-align: center; line-height: 1.5; }
-        .btn-close-modal { margin-top: 20px; background-color: #bdc3c7; color: #333; padding: 10px 20px; border-radius: 8px; font-weight: bold; border: none; cursor: pointer; }
-    </style>
+    html, body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--light-bg);
+      color: var(--text-main);
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      width: 100vw;
+      overscroll-behavior-y: none;
+    }
+
+    /* =========================================
+       2. TOP HEADER
+    ========================================= */
+    header {
+      background-color: var(--primary-blue);
+      color: white;
+      padding: 15px 20px 25px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 10;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cloud-indicator {
+      font-size: 0.8rem;
+      color: #ffffff;
+      background: rgba(255,255,255,0.2);
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-weight: normal;
+    }
+
+    /* =========================================
+       3. SIDEBAR MENU
+    ========================================= */
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 998;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: -280px;
+      width: 280px;
+      height: 100%;
+      background: var(--card-bg);
+      z-index: 999;
+      transition: left 0.3s ease;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      will-change: left;
+    }
+
+    .sidebar-header {
+      background: var(--primary-blue);
+      color: white;
+      padding: 30px 20px;
+    }
+
+    .sidebar-menu {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      overflow-y: auto;
+      overscroll-behavior-y: contain;
+      touch-action: pan-y;
+    }
+
+    .sidebar-menu li {
+      padding: 15px 20px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text-main);
+      border-bottom: 1px solid var(--border-color);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .sidebar-menu li:active {
+      background-color: var(--light-bg);
+    }
+
+    /* =========================================
+       4. APP BODY & SLIDING PAGES
+    ========================================= */
+    .app-body {
+      flex-grow: 1;
+      position: relative;
+      overflow: hidden;
+      margin-top: -15px;
+      background-color: var(--light-bg);
+    }
+
+    .slide-wrapper {
+      display: flex;
+      flex-wrap: nowrap;
+      width: 400%;
+      height: 100%;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .page {
+      flex: 0 0 25%;
+      width: 25%;
+      height: 100%;
+      padding: 0 15px 15px 15px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+      padding-bottom: 90px;
+    }
+
+    .page::-webkit-scrollbar {
+      display: none;
+    }
+
+    /* =========================================
+       5. DASHBOARD CARDS & STATS
+    ========================================= */
+    .main-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+      margin-bottom: 20px;
+    }
+
+    .month-selector {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: var(--primary-blue);
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .month-btn {
+      cursor: pointer;
+      padding: 5px 15px;
+      background: #e0e7ff;
+      border-radius: 8px;
+      user-select: none;
+    }
+
+    .month-btn:active {
+      background: #c7d2fe;
+    }
+
+    .month-text {
+      margin: 0 15px;
+      min-width: 120px;
+      text-align: center;
+    }
+
+    .stats-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 15px;
+      text-align: left;
+    }
+
+    .stat-item {
+      flex: 1;
+    }
+
+    .stat-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 1.1rem;
+      font-weight: bold;
+    }
+
+    /* =========================================
+       6. BUTTONS & INPUTS
+    ========================================= */
+    .btn-add-entry {
+      background-color: var(--primary-blue);
+      color: white;
+      border: none;
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(21, 101, 192, 0.3);
+    }
+
+    .quick-actions {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .action-btn {
+      background: var(--card-bg);
+      border: none;
+      border-radius: 12px;
+      padding: 12px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-main);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+      cursor: pointer;
+    }
+
+    .search-bar {
+      width: 100%;
+      padding: 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      background: var(--card-bg);
+      color: var(--text-main);
+      margin-bottom: 20px;
+      font-size: 1rem;
+      box-sizing: border-box;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+      font-size: 0.9rem;
+    }
+
+    .form-group input, 
+    .form-group select, 
+    .form-group textarea {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background: var(--light-bg);
+      color: var(--text-main);
+      box-sizing: border-box;
+      font-family: inherit;
+    }
+
+    /* =========================================
+       7. NEW UI LIST ITEMS (PILL SHAPE & AVATAR)
+    ========================================= */
+    .khata-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .khata-item {
+      background: #f4f5f8;
+      border-radius: 24px;
+      padding: 12px 16px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      border: none;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .khata-item:active {
+      transform: scale(0.98);
+    }
+
+    .khata-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--primary-blue);
+      color: white;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-right: 15px;
+      flex-shrink: 0;
+    }
+
+    .khata-details {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .khata-details b {
+      font-size: 1.1rem;
+      color: #1f2937;
+      margin-bottom: 2px;
+    }
+
+    .khata-details small {
+      color: #6b7280;
+      font-size: 0.85rem;
+    }
+
+    .khata-right {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .khata-due {
+      color: var(--danger-red);
+      font-weight: 700;
+      font-size: 0.95rem;
+    }
+
+    .khata-add-btn {
+      background: #dbeafe;
+      color: #1e40af;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 0.95rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .entry-amount {
+      font-weight: bold;
+      color: var(--success-green);
+    }
+
+    .entry-amount.unpaid {
+      color: var(--danger-red);
+    }
+
+    .pay-status {
+      font-size: 0.75rem;
+      padding: 3px 6px;
+      border-radius: 4px;
+      font-weight: bold;
+      display: inline-block;
+    }
+
+    .status-paid {
+      background: #dcfce7;
+      color: #166534;
+      border: 1px solid #166534;
+    }
+
+    .status-due {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #991b1b;
+    }
+
+    /* =========================================
+       8. CALENDAR VIEW
+    ========================================= */
+    .calendar-container {
+      background: var(--card-bg);
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+      margin-bottom: 15px;
+    }
+
+    .calendar-header {
+      background: var(--primary-blue);
+      color: white;
+      text-align: center;
+      padding: 10px;
+      font-weight: bold;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      background: var(--border-color);
+      gap: 1px;
+    }
+
+    .cal-header-cell {
+      text-align: center;
+      font-size: 0.7rem;
+      font-weight: bold;
+      padding: 8px;
+      background: var(--light-bg);
+    }
+
+    .cal-cell {
+      background: var(--card-bg);
+      min-height: 55px;
+      padding: 2px;
+    }
+
+    .cal-cell.empty {
+      background: var(--light-bg);
+    }
+
+    .cal-cell.today {
+      border: 2px solid var(--primary-blue);
+      background: #eff6ff;
+    }
+
+    .cal-date {
+      font-size: 0.75rem;
+      text-align: right;
+      color: var(--text-muted);
+    }
+
+    .cal-data {
+      font-size: 0.6rem;
+      text-align: center;
+      font-weight: bold;
+      color: var(--success-green);
+      line-height: 1.1;
+    }
+
+    .cal-data.gap {
+      color: var(--danger-red);
+    }
+
+    /* =========================================
+       9. BOTTOM NAVIGATION
+    ========================================= */
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: var(--card-bg);
+      display: flex;
+      box-shadow: 0 -4px 10px rgba(0,0,0,0.05);
+      z-index: 20;
+    }
+
+    .nav-item {
+      flex: 1;
+      text-align: center;
+      padding: 12px 0;
+      color: var(--text-muted);
+      font-weight: 600;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    .nav-item.active {
+      color: var(--primary-blue);
+      border-top: 3px solid var(--primary-blue);
+      background: var(--light-bg);
+    }
+
+    /* =========================================
+       10. MODALS & POPUPS
+    ========================================= */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.6);
+      z-index: 1000;
+      align-items: flex-end;
+      justify-content: center;
+    }
+
+    .modal-content {
+      background: var(--card-bg);
+      width: 100%;
+      max-height: 85vh; 
+      border-radius: 20px 20px 0 0;
+      padding: 20px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      animation: slideUp 0.3s;
+      -webkit-overflow-scrolling: touch;
+      overscroll-behavior-y: contain;
+    }
+
+    @keyframes slideUp {
+      from { transform: translateY(100%); }
+      to { transform: translateY(0); }
+    }
+    
+    .pay-method-group {
+      display: flex;
+      gap: 10px;
+      margin: 10px 0;
+      justify-content: center;
+    }
+
+    .pay-btn {
+      flex: 1;
+      max-width: 120px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      font-weight: bold;
+      background: var(--light-bg);
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    .pay-btn.active {
+      border: 2px solid var(--primary-blue);
+      background: #eff6ff;
+      color: var(--primary-blue);
+    }
+
+    .cust-nav-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border-color);
+      margin: 10px 0 15px 0;
+    }
+
+    .cust-nav-tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      font-weight: bold;
+      color: var(--text-muted);
+      cursor: pointer;
+    }
+
+    .cust-nav-tab.active {
+      color: var(--primary-blue);
+      border-bottom: 3px solid var(--primary-blue);
+      background: var(--light-bg);
+    }
+
+    /* =========================================
+       11. TOAST NOTIFICATION
+    ========================================= */
+    #toastBox {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #333;
+      color: #fff;
+      padding: 12px 24px;
+      border-radius: 30px;
+      font-weight: bold;
+      font-size: 0.95rem;
+      z-index: 9999;
+      display: none;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      white-space: nowrap;
+      text-align: center;
+    }
+
+    .toast-success {
+      background-color: var(--success-green) !important;
+    }
+
+    .toast-error {
+      background-color: var(--danger-red) !important;
+    }
+
+    @keyframes fadeInOut {
+      0% { opacity: 0; bottom: 60px; }
+      15% { opacity: 1; bottom: 80px; }
+      85% { opacity: 1; bottom: 80px; }
+      100% { opacity: 0; bottom: 60px; }
+    }
+
+    /* =========================================
+       12. SECURE GOOGLE LOGIN SCREEN
+    ========================================= */
+    #loginScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--primary-blue);
+      z-index: 10000;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .login-box {
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
+      text-align: center;
+      width: 80%;
+      max-width: 320px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    }
+
+    /* =========================================
+       13. IMAGE MODAL (For Long Press)
+    ========================================= */
+    #imageModal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%; 
+        background: rgba(0,0,0,0.9);
+        z-index: 10000;
+        justify-content: center; 
+        align-items: center;
+        flex-direction: column;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
+    #modalImage {
+        max-width: 100%;
+        max-height: 70vh;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        object-fit: contain;
+    }
+
+    .modal-text {
+        color: #fff;
+        margin-bottom: 20px;
+        font-size: 1.1em;
+        text-align: center;
+        line-height: 1.5;
+    }
+
+    .btn-close-modal {
+        margin-top: 20px;
+        background-color: #bdc3c7;
+        color: #333;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: bold;
+        border: none;
+        cursor: pointer;
+    }
+  </style>
 </head>
+
 <body>
-
-    <div id="loginScreen">
-        <div class="login-box">
-            <h2>🛡️ Sitaram Dairy Secure Access</h2>
-            <input type="password" id="adminPinInput" placeholder="Enter PIN">
-            <button class="btn-add-entry" onclick="verifyPin()">Unlock App</button>
-            <p id="loginMessage" style="color:var(--danger-red); margin-top:10px;"></p>
-        </div>
+  <div id="loginScreen">
+    <div class="login-box">
+      <div style="font-size: 3rem; margin-bottom: 10px;">🛡️</div>
+      <h2 style="color: var(--primary-blue); margin-top:0; margin-bottom: 5px;">Sitaram Dairy</h2>
+      <p style="color: #666; font-size: 0.9rem; margin-top: 0;">Secure Cloud Access</p>
+      
+      <button class="btn-add-entry" style="background-color: #ffffff; color: #757575; border: 1px solid #ddd; margin-top: 25px; display: flex; align-items: center; justify-content: center; gap: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="googleLogin()">
+        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width: 22px;">
+        Sign in with Google
+      </button>
     </div>
+  </div>
 
-    <header>
-        <h1>🥛 Sitaram Dairy</h1>
-        <span id="cloudStatus" class="cloud-indicator">☁️ Syncing</span>
-        <button onclick="openSidebar()" style="background:none; border:none; color:white; font-size:1.5rem; cursor:pointer;">☰</button>
-    </header>
-
-    <div id="sidebarOverlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
-    <div id="sidebar" class="sidebar">
-        <div class="sidebar-header">
-            <h2 style="margin:0;">Sitaram Dairy</h2>
-            <p style="margin:5px 0 0 0; font-size:0.9rem;">Premium PRO v1.0 ☁️</p>
-        </div>
-        <ul class="sidebar-menu">
-            <li onclick="manualRefresh()">🔄 Refresh Page</li>
-            <li onclick="openAutoEntryModal()">🤖 Auto-Entry Setup</li>
-            <li onclick="switchTab(0); closeSidebar()">🏠 Home Dashboard</li>
-            <li onclick="switchTab(1); closeSidebar()">📝 Add New Entry</li>
-            <li onclick="switchTab(2); closeSidebar()">⏱️ Customer History</li>
-            <li onclick="switchTab(3); closeSidebar()">👤 Manage Customers</li>
-            <li onclick="openSettingsModal()">⚙️ Settings (QR Upload)</li>
-            <li onclick="downloadBackup()">💾 Download File Backup</li>
-            <li>📂 Restore Backup <input type="file" onchange="restoreBackup(this)" style="width: 100px; font-size: 0.8rem; margin-left: 10px;"></li>
-            <li onclick="toggleDarkMode()">🌙 Dark Mode Toggle</li>
-            <li onclick="toggleLanguage()">🌐 A/अ Change Language</li>
-            <li onclick="lockApp()" style="color: var(--danger-red);">🔒 Lock App</li>
-            <li onclick="clearAllData()" style="color: var(--danger-red);">🗑️ Clear All Data</li>
-        </ul>
+  <div id="toastBox" class="toast-success">Message Here</div>
+  <input type="file" id="restoreUpload" accept=".json, application/json, text/plain, */*" style="display:none;" onchange="restoreBackup(this)">
+  
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+  
+  <div class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <h2>Sitaram Dairy</h2>
+      <p id="lblAppVersion">Premium PRO v2.0 ☁️</p>
     </div>
+    <ul class="sidebar-menu">
+      <li onclick="closeSidebar(); manualRefresh()" style="background-color: #eff6ff; color: var(--primary-blue); font-weight:bold; border-radius: 8px; margin: 10px;">
+        🔄 <span id="lblRefreshSide">Refresh Page</span>
+      </li>
+      <li onclick="closeSidebar(); openAutoEntryModal()" style="background-color: #fdfae5; color: #b45309; font-weight:bold; border-radius: 8px; margin: 0 10px 10px 10px; border: 1px solid #fde68a;">
+        🤖 <span>Auto-Entry Setup</span>
+      </li>
+      <li onclick="closeSidebar(); switchTab(0)">
+        <span id="lblNavHomeSide">🏠 Home Dashboard</span>
+      </li>
+      <li onclick="closeSidebar(); switchTab(1)">
+        <span id="lblNavEntrySide">📝 Add New Entry</span>
+      </li>
+      <li onclick="closeSidebar(); openHistory()">
+        <span id="lblNavHistSide">⏱️ Customer History</span>
+      </li>
+      <li onclick="closeSidebar(); switchTab(3)">
+        <span id="lblNavCustSide">👤 Manage Customers</span>
+      </li>
+      <li style="border-top: 1px solid var(--border-color); margin-top: 5px; padding-top: 15px; color: var(--primary-blue);" onclick="closeSidebar(); openSettingsModal()">
+        ⚙️ <span id="lblSettingsSide">Settings (QR Upload)</span>
+      </li>
+      <li onclick="closeSidebar(); downloadBackup()" style="color: var(--primary-blue);">
+        💾 <span id="lblBackupSide">Download File Backup</span>
+      </li>
+      <li onclick="closeSidebar(); document.getElementById('restoreUpload').click()" style="color: var(--success-green);">
+        📂 <span id="lblRestoreSide">Restore File Backup</span>
+      </li>
+      <li onclick="toggleDarkMode()" style="color: var(--text-main);">
+        🌙 <span id="lblDarkMode">Dark Mode Toggle</span>
+      </li>
+      <li style="color: #f59e0b; border-top: 1px solid var(--border-color); margin-top:10px; padding-top: 15px;" onclick="lockApp()">
+        🔒 <span>Logout App</span>
+      </li>
+      <li style="color: var(--danger-red);" onclick="closeSidebar(); clearAllData()">
+        🗑️ <span id="lblClearSide">Clear All Data</span>
+      </li>
+    </ul>
+  </div>
 
-    <div class="app-body">
-        <div id="slideWrapper" class="slide-wrapper">
-            
-            <div class="page" id="pageDashboard">
-                <div class="month-selector" style="margin-top: 15px;">
-                    <span class="month-btn" onclick="prevMonth()">&lt;</span>
-                    <span class="month-text" id="currentMonthText">Month Year</span>
-                    <span class="month-btn" onclick="nextMonth()">&gt;</span>
-                </div>
+  <header class="no-print">
+    <div onclick="openSidebar()" style="font-size: 1.5rem; cursor: pointer;">☰</div>
+    <h1>Sitaram Dairy <span class="cloud-indicator" id="cloudStatus">☁️ Checking</span></h1>
+    <div style="font-size: 1.5rem;">🔔</div>
+  </header>
 
-                <div class="main-card">
-                    <div class="stats-row">
-                        <div class="stat-item"><span class="stat-label">Milk</span><span class="stat-value" id="dashDoodh">0 L</span></div>
-                        <div class="stat-item"><span class="stat-label">Ghee</span><span class="stat-value" id="dashGhee">0 kg</span></div>
-                        <div class="stat-item"><span class="stat-label">Mahi</span><span class="stat-value" id="dashMahi">0 L</span></div>
-                    </div>
-                    <div class="stats-row" style="margin-bottom: 0;">
-                        <div class="stat-item"><span class="stat-label">Total Bill</span><span class="stat-value" id="dashTotalBill">Rs 0</span></div>
-                        <div class="stat-item"><span class="stat-label">Paid ✅</span><span class="stat-value" style="color:var(--success-green)" id="dashPaid">Rs 0</span></div>
-                        <div class="stat-item"><span class="stat-label">Due ❌</span><span class="stat-value" style="color:var(--danger-red)" id="dashUnpaid">Rs 0</span></div>
-                    </div>
-                    <div class="stats-row" style="margin-top: 10px; text-align:center;">
-                        <div class="stat-item"><span class="stat-label">Outstanding Balance</span><span class="stat-value" style="color:var(--danger-red); font-size:1.3rem;" id="dashOutstanding">Rs 0</span></div>
-                    </div>
-                    <button class="btn-add-entry" style="margin-top: 15px;" onclick="switchTab(1)">➕ Add New Entry</button>
-                </div>
-
-                <div class="main-card" id="analyticsCard">
-                    <div class="section-header">
-                        <h3 style="margin: 0; color: var(--text-main);">📈 Daily Analytics</h3>
-                    </div>
-                    <canvas id="milkChart" width="400" height="200" style="margin-top: 10px;"></canvas>
-                </div>
-
-                <div class="quick-actions">
-                    <button class="action-btn" onclick="openPayModal()">
-                        <span style="font-size: 1.5rem;">💳</span>
-                        <span id="lblPayBtn">Pay/Udhaar</span>
-                    </button>
-                    <button class="action-btn" onclick="openHistory()">
-                        <span style="font-size: 1.5rem;">⏱️</span>
-                        <span id="lblHistBtn">History</span>
-                    </button>
-                </div>
-
-                <input type="text" class="search-bar" placeholder="🔍 Search naam..." id="searchInput" oninput="debounceFilterHomeList()">
-                
-                <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;">
-                    <h3 style="margin:0; color: var(--text-main);" id="lblRecent">Recent Entries</h3>
-                    <span style="color:var(--primary-blue); font-weight:bold; font-size:0.9rem; cursor:pointer;" onclick="openHistory()">View All</span>
-                </div>
-                <ul class="khata-list" id="homeRecentList"></ul>
-            </div>
-
-            <div class="page" id="pageEntry">
-                <div class="form-card" style="margin-top:20px; background:var(--card-bg); padding:20px; border-radius:16px;">
-                    <h3 style="margin-top: 0; color: var(--text-main); font-size: 1.3rem; margin-bottom: 20px;" id="lblNewEntry">Nayi Entry Bharein</h3>
-                    <div class="form-group">
-                        <label>Date (Tareekh):</label>
-                        <input type="date" id="entryDate">
-                    </div>
-                    <div class="form-group">
-                        <label>Customer Naam:</label>
-                        <input type="text" id="customerSelectInput" list="customerDataList" placeholder="Grahak ka naam...">
-                        <datalist id="customerDataList"></datalist>
-                    </div>
-                    <div class="form-group">
-                        <label>Item:</label>
-                        <select id="product">
-                            <option value="Doodh">Doodh</option>
-                            <option value="Ghee">Ghee</option>
-                            <option value="Mahi">Mahi</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Shift:</label>
-                        <select id="shift">
-                            <option value="Subah">Subah</option>
-                            <option value="Shaam">Shaam</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Quantity (L/kg):</label>
-                        <input type="text" id="matra" placeholder="1 L, 500 ml, ya gap">
-                    </div>
-                    <div class="form-group">
-                        <label>Rate (Rs):</label>
-                        <input type="number" id="rate" value="60" min="0" step="1">
-                    </div>
-                    <div class="form-group">
-                        <label>Payment:</label>
-                        <select id="payment" onchange="toggleEntryPayMethod()">
-                            <option value="unpaid">Udhaar ❌</option>
-                            <option value="paid">Paid ✅</option>
-                        </select>
-                    </div>
-                    <div id="entryPayMethodDiv" style="display:none; margin-bottom:15px;">
-                        <div class="pay-method-group">
-                            <button class="pay-btn active" id="eBtnCash" onclick="setEntryMode('cash')">💵 Cash</button>
-                            <button class="pay-btn" id="eBtnOnline" onclick="setEntryMode('online')">📱 Online</button>
-                        </div>
-                        <input type="hidden" id="entryPayMode" value="cash">
-                    </div>
-                    <button class="btn-add-entry" onclick="saveRecord()" id="btnSaveEntry">Save Record</button>
-                </div>
-            </div>
-
-            <div class="page" id="pageKhata">
-                <div id="historyListView">
-                    <input type="text" class="search-bar" placeholder="🔍 Search History..." id="historySearch" oninput="debounceRenderHistoryList()" style="margin-top:15px;">
-                    <div class="section-header" style="margin-bottom:15px;">
-                        <h3 style="color: var(--text-main);">Sabhi Grahak</h3>
-                    </div>
-                    <div id="historyCustList"></div>
-                </div>
-
-                <div id="historyDetailView" style="display:none; padding-top:10px;">
-                    <button onclick="backToHistoryList()" style="background:none; border:none; color:var(--primary-blue); font-size:1.1rem; font-weight:bold; margin-bottom:15px; cursor:pointer; padding:0;">⬅️ Back to List</button>
-                    
-                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
-                        <h2 id="histCustName" style="margin:0; color:var(--primary-blue); font-size:1.4rem;">Customer Name</h2>
-                        <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content: flex-end;">
-                            <button onclick="shareWhatsAppBill()" style="background:#25D366; color:white; border:none; padding:8px 10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size: 0.8rem;">💬 Msg</button>
-                            <button onclick="shareBillImage()" style="background:#0ea5e9; color:white; border:none; padding:8px 10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size: 0.8rem;">📲 Pic</button>
-                            <button onclick="showBillImageModal()" style="background:#f59e0b; color:white; border:none; padding:8px 10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size: 0.8rem;">🖼️ View</button>
-                            <button onclick="downloadBillPDF()" style="background:#10b981; color:white; border:none; padding:8px 10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size: 0.8rem;">📄 PDF</button>
-                        </div>
-                    </div>
-
-                    <div class="cust-nav-tabs">
-                        <div class="cust-nav-tab active" id="tDet" onclick="openCustTab('detail')">📄 Detail</div>
-                        <div class="cust-nav-tab" id="tCal" onclick="openCustTab('calendar')">🗓️ Calendar</div>
-                        <div class="cust-nav-tab" id="tPay" onclick="openCustTab('pay')">💳 Pay</div>
-                    </div>
-                    <div id="custTabContent"></div>
-                </div>
-            </div>
-
-            <div class="page" id="pageCustomers">
-                <div class="form-card" id="customerFormArea" style="margin-top:20px; background:var(--card-bg); padding:20px; border-radius:16px;">
-                    <h3 id="custFormTitle" style="margin-top: 0; color: var(--text-main); font-size: 1.3rem; margin-bottom: 20px;">Naya Grahak Jodein</h3>
-                    <input type="hidden" id="editCustId" value="">
-                    <div class="form-group">
-                        <label>Grahak Ka Naam:</label>
-                        <input type="text" id="cName" placeholder="Jaise: Ramesh Kumar">
-                    </div>
-                    <div class="form-group">
-                        <label>Mobile Number:</label>
-                        <input type="tel" id="cPhone" placeholder="Jaise: 9876543210" maxlength="10">
-                    </div>
-                    <div class="form-group">
-                        <label>Pata (Address):</label>
-                        <textarea id="cAddress" rows="2" placeholder="Grahak ka pata..."></textarea>
-                    </div>
-                    <button class="btn-add-entry" id="saveCustBtn" onclick="saveCustomerBtn()" style="margin-top: 15px;">➕ Save Customer</button>
-                    <button class="btn-add-entry" id="cancelEditBtn" onclick="resetCustomerForm()" style="margin-top: 10px; background-color:var(--border-color); color:var(--text-main); display:none; box-shadow:none;">Cancel Edit</button>
-                </div>
-
-                <div class="section-header" style="margin-top:25px;">
-                    <h3 style="color: var(--text-main);">Grahak List</h3>
-                </div>
-                <div id="customerListDiv"></div>
-            </div>
-
-        </div>
-    </div>
-
-    <div class="bottom-nav">
-        <div class="nav-item active" onclick="switchTab(0)">🏠<br>Home</div>
-        <div class="nav-item" onclick="switchTab(1)">📝<br>Entry</div>
-        <div class="nav-item" onclick="switchTab(2)">⏱️<br>History</div>
-        <div class="nav-item" onclick="switchTab(3)">👤<br>Grahak</div>
-    </div>
-
-    <div id="toastBox">Message Here</div>
-
-    <div id="autoEntryModal" class="modal-overlay">
-        <div class="modal-content">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 style="margin:0;">🤖 Auto-Entry System</h3>
-                <button onclick="document.getElementById('autoEntryModal').style.display='none'" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">❌</button>
-            </div>
-            <p style="font-size:0.9rem; color:var(--text-muted);">Roz subah app kholte hi inki entry apne-aap lag jayegi!</p>
-            
-            <div style="background: var(--light-bg); padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid var(--border-color);">
-                <h4 style="margin: 0 0 10px 0;">Naya Auto-Entry Jodein</h4>
-                <div class="form-group">
-                    <input type="text" id="autoSubName" list="customerDataList" placeholder="Grahak ka naam...">
-                </div>
-                <div style="display:flex; gap:10px;">
-                    <div class="form-group" style="flex:1;">
-                        <select id="autoSubShift">
-                            <option value="Subah">Subah</option>
-                            <option value="Shaam">Shaam</option>
-                        </select>
-                    </div>
-                    <div class="form-group" style="flex:1;">
-                        <select id="autoSubProduct">
-                            <option value="Doodh">Doodh</option>
-                            <option value="Ghee">Ghee</option>
-                            <option value="Mahi">Mahi</option>
-                        </select>
-                    </div>
-                </div>
-                <div style="display:flex; gap:10px;">
-                    <div class="form-group" style="flex:1;">
-                        <input type="text" id="autoSubMatra" placeholder="Matra (1.5 L)">
-                    </div>
-                    <div class="form-group" style="flex:1;">
-                        <input type="number" id="autoSubRate" value="60" min="0" step="1" placeholder="Rate">
-                    </div>
-                </div>
-                <button class="btn-add-entry" onclick="saveSubscription()" style="padding: 10px; font-size: 1rem;">➕ Set Auto-Entry</button>
-            </div>
-            <h4 style="margin-bottom: 10px;">Chalu Auto-Entries (Active)</h4>
-            <div id="subscriptionListDiv"></div>
-        </div>
-    </div>
-
-    <div id="payModal" class="modal-overlay">
-        <div class="modal-content">
-            <div style="display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="margin:0;">💳 Payment Collect</h3>
-                <button onclick="closePayModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">❌</button>
-            </div>
-            
-            <div id="modalStep1">
-                <input type="text" class="search-bar" placeholder="🔍 Search naam..." id="paySearchInput" oninput="renderPayModalList()" style="margin-top:10px; margin-bottom:10px;">
-                <ul class="pay-customer-list" id="payCustomerList" style="max-height: 50vh; overflow-y:auto; list-style:none; padding:0;"></ul>
-            </div>
-            
-            <div id="modalStep2" class="qr-view" style="display:none; text-align:center;">
-                <p style="color:var(--text-muted); margin-bottom:5px;">Payment from:</p>
-                <h3 id="qrCustomerName" style="margin:0; font-size:1.5rem; color:var(--text-main);">Customer Name</h3>
-                <div style="font-size: 2.5rem; color: var(--primary-blue); font-weight: bold; margin: 15px 0;" id="qrAmount">Rs 0</div>
-                
-                <div style="margin-top: 5px; margin-bottom: 15px;">
-                    <span style="font-weight:bold; font-size:0.9rem; color:var(--text-muted);">Payment Mode:</span>
-                    <div class="pay-method-group" style="justify-content:center;">
-                        <button class="pay-btn active" id="mBtnOnline" onclick="setModalMode('online')" style="max-width:120px;">📱 Online</button>
-                        <button class="pay-btn" id="mBtnCash" onclick="setModalMode('cash')" style="max-width:120px;">💵 Cash</button>
-                    </div>
-                </div>
-                <input type="hidden" id="modalPayMode" value="online">
-                <div class="visual-area" id="modalVisualArea"></div>
-                <p id="modalInstructionTxt" style="font-size: 0.9rem; color: var(--text-muted); font-weight:bold;"></p>
-                
-                <button class="btn-add-entry" style="background-color: var(--success-green); margin-top: 15px;" onclick="confirmPayment('modal')">✅ Confirm Received</button>
-                <button class="btn-add-entry" style="background:var(--border-color); color:var(--text-main); margin-top:10px; box-shadow:none;" onclick="backToPayList()">⬅️ Back</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="editEntryModal" class="modal-overlay">
-        <div class="modal-content">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 style="margin:0;">✏️ Edit Entry</h3>
-                <button onclick="closeEditEntryModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">❌</button>
-            </div>
-            <input type="hidden" id="editEntryId">
-            <div class="form-group">
-                <label>Date:</label>
-                <input type="date" id="edDate">
-            </div>
-            <div class="form-group">
-                <label>Item:</label>
-                <select id="edProduct">
-                    <option>Doodh</option>
-                    <option>Ghee</option>
-                    <option>Mahi</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Matra:</label>
-                <input type="text" id="edMatra">
-            </div>
-            <div class="form-group">
-                <label>Rate:</label>
-                <input type="number" id="edRate" min="0" step="1">
-            </div>
-            <div class="form-group">
-                <label>Payment Status:</label>
-                <select id="edPayment" onchange="toggleEditPayMode()">
-                    <option value="unpaid">Udhaar</option>
-                    <option value="paid">Paid</option>
-                </select>
-            </div>
-            <div class="form-group" id="edPayModeGroup" style="display:none;">
-                <label>Payment Mode:</label>
-                <select id="edPayMode">
-                    <option value="cash">Cash</option>
-                    <option value="online">Online</option>
-                </select>
-            </div>
-            <button class="btn-add-entry" onclick="saveEditedEntry()">Update Entry</button>
-            <button class="btn-add-entry" style="background:var(--danger-red); margin-top:10px;" onclick="deleteEditedEntry()">🗑️ Delete Entry</button>
-        </div>
-    </div>
-
-    <div id="settingsModal" class="modal-overlay">
-        <div class="modal-content">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                <h3 style="margin:0;">⚙️ App Settings</h3>
-                <button onclick="closeSettingsModal()" style="background:none; border:none; font-size:1.5rem; cursor:pointer;">❌</button>
-            </div>
-            <div class="form-group">
-                <label>Upload Your QR Code Image:</label>
-                <input type="file" id="qrUploadInput" accept="image/*" onchange="handleQRUpload(this)">
-            </div>
-            <div id="qrPreviewArea" style="text-align:center; margin:10px 0;">
-                <img id="qrPreviewImg" src="" style="max-width:150px; max-height:150px; display:none; border:2px solid #000; border-radius:10px;">
-            </div>
-            <button class="btn-add-entry" style="background:#10b981; color:white; margin-top: 15px;" onclick="exportCSV()">📊 Download Excel (CSV)</button>
-            <button class="btn-add-entry" style="background:var(--border-color); color:var(--text-main); box-shadow:none; margin-top: 10px;" onclick="closeSettingsModal()">Close</button>
-        </div>
-    </div>
-
-    <div id="imageModal">
-        <div class="modal-text">👆 <br> <b>Long Press the bill below to Save/Share</b></div>
-        <img id="modalImage" src="" alt="Bill Image">
-        <button class="btn-close-modal" onclick="closeModal()">Close</button>
-    </div>
-
-    <div id="billArea" style="position: absolute; left: -9999px; background: white; width: 600px; padding: 30px; font-family: Arial, sans-serif; box-sizing: border-box; color: #000;">
-        <div style="text-align: center; border-bottom: 2px solid #0b3d91; padding-bottom: 10px; margin-bottom: 20px;">
-            <h1 style="color: #0b3d91; margin: 0; font-size: 2rem; text-transform: uppercase;">SITARAM DAIRY</h1>
-            <p style="margin: 5px 0; font-style: italic; color: #555;">100% Pure & Hygienic Milk</p>
-            <p style="margin: 5px 0; font-weight: bold;">📞 7470701427 | 8963974599</p>
-        </div>
-        
-        <div style="font-size: 1.2rem; display: flex; justify-content: space-between; margin-bottom: 20px;">
+  <div class="app-body no-print">
+    <div class="slide-wrapper" id="slideWrapper">
+      
+      <div class="page" id="pageHome">
+        <div class="main-card" style="margin-top: 15px;">
+          <div class="month-selector">
+            <span class="month-btn" onclick="prevMonth()">&lt;</span>
+            <span class="month-text" id="currentMonthText">May 2026</span>
+            <span class="month-btn" onclick="nextMonth()">&gt;</span>
+          </div>
+          <div class="stats-row">
             <div>
-                <p style="margin:5px 0;"><b>Customer:</b> <span id="bName"></span></p>
-                <p style="margin:5px 0;"><b>Month:</b> <span id="bMonth"></span></p>
+              <span class="stat-label" id="lblMilk">Milk</span>
+              <span class="stat-value" id="dashDoodh">0 L</span>
             </div>
+            <div>
+              <span class="stat-label" id="lblGhee">Ghee</span>
+              <span class="stat-value" id="dashGhee">0 kg</span>
+            </div>
+            <div>
+              <span class="stat-label" id="lblMahi">Mahi</span>
+              <span class="stat-value" id="dashMahi">0 L</span>
+            </div>
+          </div>
+          <div class="stats-row" style="border-top:1px solid var(--border-color); padding-top:10px;">
+            <div>
+              <span class="stat-label">Total Bill</span>
+              <span class="stat-value" id="dashTotalBill" style="color:var(--primary-blue)">Rs 0</span>
+            </div>
+            <div style="text-align: right;">
+              <span class="stat-label">Outstanding</span>
+              <span class="stat-value" id="dashOutstanding" style="color:var(--danger-red)">Rs 0</span>
+            </div>
+          </div>
+          <div class="stats-row" style="padding-top:5px;">
+            <div style="color: var(--success-green);">
+              <span class="stat-label" id="lblPaid">Paid ✅</span>
+              <span class="stat-value" id="dashPaid">Rs 0</span>
+            </div>
+            <div style="color: var(--danger-red); text-align: right;">
+              <span class="stat-label" id="lblDue">Due ❌</span>
+              <span class="stat-value" id="dashUnpaid">Rs 0</span>
+            </div>
+          </div>
+          <button class="btn-add-entry" style="margin-top:15px;" onclick="switchTab(1)" id="btnAddEntryHome">➕ Add New Entry</button>
+        </div>
+
+        <div class="main-card" id="analyticsCard">
+          <div class="section-header">
+            <h3 style="margin: 0; color: var(--text-main);">📈 Daily Analytics</h3>
+          </div>
+          <canvas id="milkChart" width="400" height="200" style="margin-top: 10px;"></canvas>
+        </div>
+
+        <div class="quick-actions">
+          <button class="action-btn" onclick="openPayModal()">
+            <span>💳</span> <span id="lblPayBtn">Pay/Udhaar</span>
+          </button>
+          <button class="action-btn" onclick="openHistory()">
+            <span>⏱️</span> <span id="lblHistBtn">History</span>
+          </button>
+        </div>
+
+        <input type="text" class="search-bar" placeholder="🔍 Search naam..." id="searchInput" oninput="debounceFilterHomeList()">
+        
+        <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;">
+          <h3 style="margin:0; color: var(--text-main);" id="lblRecent">Recent Entries</h3>
+          <span style="color:var(--primary-blue); font-weight:bold; font-size:0.9rem; cursor:pointer;" onclick="openHistory()">View All</span>
+        </div>
+        <ul class="khata-list" id="homeRecentList"></ul>
+      </div>
+
+      <div class="page" id="pageEntry">
+        <div class="form-card" style="margin-top:20px; background:var(--card-bg); padding:20px; border-radius:16px;">
+          <h3 style="margin-top: 0; color: var(--text-main); font-size: 1.3rem; margin-bottom: 20px;" id="lblNewEntry">Nayi Entry Bharein</h3>
+          <div class="form-group">
+            <label>Date (Tareekh):</label>
+            <input type="date" id="entryDate">
+          </div>
+          <div class="form-group">
+            <label>Customer Naam:</label>
+            <input type="text" id="customerSelectInput" list="customerDataList" placeholder="Grahak ka naam...">
+            <datalist id="customerDataList"></datalist>
+          </div>
+          <div class="form-group">
+            <label>Item:</label>
+            <select id="product">
+              <option value="Doodh">Doodh</option>
+              <option value="Ghee">Ghee</option>
+              <option value="Mahi">Mahi</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Shift:</label>
+            <select id="shift">
+              <option value="Subah">Subah</option>
+              <option value="Shaam">Shaam</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Quantity (L/kg):</label>
+            <input type="text" id="matra" placeholder="1 L, 500 ml, ya gap">
+          </div>
+          <div class="form-group">
+            <label>Rate (Rs):</label>
+            <input type="number" id="rate" value="60" min="0" step="1">
+          </div>
+          <div class="form-group">
+            <label>Payment:</label>
+            <select id="payment" onchange="toggleEntryPayMethod()">
+              <option value="unpaid">Udhaar ❌</option>
+              <option value="paid">Paid ✅</option>
+            </select>
+          </div>
+          <div id="entryPayMethodDiv" style="display:none; margin-bottom:15px;">
+            <div class="pay-method-group">
+              <button class="pay-btn active" id="eBtnCash" onclick="setPaymentMode('cash', 'entry')">💵 Cash</button>
+              <button class="pay-btn" id="eBtnOnline" onclick="setPaymentMode('online', 'entry')">📱 Online</button>
+            </div>
+          </div>
+          <button class="btn-add-entry" onclick="saveRecord()" id="btnSaveEntry">Save Record</button>
+        </div>
+      </div>
+
+      <div class="page" id="pageKhata">
+        <div id="historyListView">
+          <input type="text" class="search-bar" placeholder="🔍 Search History..." id="historySearch" oninput="debounceRenderHistoryList()" style="margin-top:15px;">
+          <div class="section-header" style="margin-bottom:15px;">
+            <h3 style="color: var(--text-main);">Sabhi Grahak</h3>
+          </div>
+          <div id="historyCustList"></div>
         </div>
         
-        <table border="1" width="100%" cellspacing="0" cellpadding="10" style="border-collapse: collapse; margin-top: 20px; font-size: 1.1rem; border-color: #ddd;">
-            <thead style="background-color: #f0f4f8;">
-                <tr>
-                    <th style="text-align: left;">Date</th>
-                    <th style="text-align: left;">Item</th>
-                    <th style="text-align: left;">Qty</th>
-                    <th style="text-align: right;">Amount (Rs)</th>
-                </tr>
-            </thead>
-            <tbody id="billTable"></tbody>
-        </table>
-        
-        <div style="text-align:right; margin-top:20px; border-top: 2px solid #ccc; padding-top: 15px;" id="bTotal"></div>
-        
-        <div style="margin-top: 60px; display: flex; justify-content: space-between;">
-            <div style="text-align: center;">
-                <hr style="width: 150px; border-top: 2px solid #000;">
-                <p style="font-size: 1rem; margin-top: 10px; color: #333;">Customer Signature</p>
+        <div id="historyDetailView" style="display:none; padding-top:10px;">
+          <button onclick="backToHistoryList()" style="background:none; border:none; color:var(--primary-blue); font-size:1.1rem; font-weight:bold; margin-bottom:15px; cursor:pointer; padding:0;">⬅️ Back to List</button>
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
+            <h2 id="histCustName" style="margin:0; color:var(--primary-blue); font-size:1.4rem;">Customer Name</h2>
+            <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content: flex-end;">
+              <button onclick="shareWhatsAppBill()" style="background:#25D366; color:white; border:none; padding:8px 10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size: 0.8rem;">💬 Msg</button>
+              <button onclick="shareBillImage()" style="background:#0ea5e9; color:white; border:none; padding:8px 10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size: 0.8rem;">📲 Pic</button>
+              <button onclick="showBillImageModal()" style="background:#f59e0b; color:white; border:none; padding:8px 10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size: 0.8rem;">🖼️ View</button>
+              <button onclick="downloadBillPDF()" style="background:#10b981; color:white; border:none; padding:8px 10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size: 0.8rem;">📄 PDF</button>
             </div>
-            <div style="text-align: center;">
-                <h3 style="margin: 0; font-family: 'Times New Roman', Times, serif; font-style: italic; color: #0b3d91; font-size:1.5rem;">Mukesh Soni</h3>
-                <hr style="width: 150px; border-top: 2px solid #000;">
-                <p style="font-size: 1rem; margin-top: 10px; color: #333;">Authorized Sign</p>
-            </div>
+          </div>
+          <div class="cust-nav-tabs">
+            <div class="cust-nav-tab active" id="tDet" onclick="openCustTab('detail')">📄 Detail</div>
+            <div class="cust-nav-tab" id="tCal" onclick="openCustTab('calendar')">🗓️ Calendar</div>
+            <div class="cust-nav-tab" id="tPay" onclick="openCustTab('pay')">💳 Pay</div>
+          </div>
+          <div id="custTabContent"></div>
         </div>
-        <p style="text-align:center; font-size:1rem; color:#888; margin-top:40px;">Thank you for your business!</p>
+      </div>
+
+      <div class="page" id="pageCustomers">
+        <div class="form-card" id="customerFormArea" style="margin-top:20px; background:var(--card-bg); padding:20px; border-radius:16px;">
+          <h3 id="custFormTitle" style="margin-top: 0; color: var(--text-main); font-size: 1.3rem; margin-bottom: 20px;">Naya Grahak Jodein</h3>
+          <input type="hidden" id="editCustId" value="">
+          <div class="form-group">
+            <label>Grahak Ka Naam:</label>
+            <input type="text" id="cName" placeholder="Jaise: Ramesh Kumar">
+          </div>
+          <div class="form-group">
+            <label>Mobile Number:</label>
+            <input type="tel" id="cPhone" placeholder="Jaise: 9876543210" maxlength="10">
+          </div>
+          <div class="form-group">
+            <label>Pata (Address):</label>
+            <textarea id="cAddress" rows="2" placeholder="Grahak ka pata..."></textarea>
+          </div>
+          <button class="btn-add-entry" id="saveCustBtn" onclick="saveCustomerBtn()" style="margin-top: 15px;">➕ Save Customer</button>
+          <button class="btn-add-entry" id="cancelEditBtn" onclick="resetCustomerForm()" style="margin-top: 10px; background-color:var(--border-color); color:var(--text-main); display:none; box-shadow:none;">Cancel Edit</button>
+        </div>
+        <div class="section-header" style="margin-top:25px;">
+          <h3 style="color: var(--text-main);">Grahak List</h3>
+        </div>
+        <div id="customerListDiv"></div>
+      </div>
     </div>
+  </div>
 
-    <script>
-        // --- 1. FIREBASE CONFIGURATION ---
-        const firebaseConfig = {
-            apiKey: "AIzaSyCrpQiuWHivJ--t7IyNzycy6PUi8NYhw10",
-            authDomain: "sitaram-dairy.firebaseapp.com",
-            projectId: "sitaram-dairy",
-            storageBucket: "sitaram-dairy.firebasestorage.app",
-            messagingSenderId: "135965768932",
-            appId: "1:135965768932:web:e8420181bdd9efcbb6c0f1"
-        };
+  <div class="bottom-nav no-print">
+    <div class="nav-item active" id="tabHome" onclick="switchTab(0)">🏠<br><span id="lblNavHome">Home</span></div>
+    <div class="nav-item" id="tabEntry" onclick="switchTab(1)">📝<br><span id="lblNavEntry">Entry</span></div>
+    <div class="nav-item" id="tabKhata" onclick="switchTab(2)">⏱️<br><span id="lblNavHist">History</span></div>
+    <div class="nav-item" id="tabCust" onclick="switchTab(3)">👤<br><span id="lblNavCust">Grahak</span></div>
+  </div>
 
-        // --- SMART QUANTITY PARSER ---
-        function parseQuantity(m, rate) {
-            m = m.toLowerCase().trim();
-            if (m === 'gap' || m.includes('chhutti') || m.includes('🚫')) {
-                return { dispM: 'Aaj ka Gap 🚫', amount: 0 };
-            }
-            let numStr = m.match(/\d*\.?\d+/);
-            if (!numStr) return null;
-            let num = parseFloat(numStr[0]);
-            let suf = 'L';
-            if (m.includes('ml')) suf = 'ml';
-            else if (m.includes('kg')) suf = 'kg';
-            else if (m.includes('g')) suf = 'g';
-            else if (m.includes('l')) suf = 'L';
-            else if (num >= 50) suf = 'ml';
-            let amt = (suf === 'ml' || suf === 'g') ? +((num / 1000) * rate).toFixed(2) : +(num * rate).toFixed(2);
-            return { dispM: num + ' ' + suf, amount: amt };
+  <div id="autoEntryModal" class="modal-overlay no-print">
+    <div class="modal-content" style="max-height: 85vh;">
+      <span class="close-btn" onclick="document.getElementById('autoEntryModal').style.display='none'" style="float:right; font-size:1.5rem; cursor:pointer;">❌</span>
+      <h3 style="margin-top:0; color:var(--primary-blue);">🤖 Auto-Entry System</h3>
+      <div style="background: var(--light-bg); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
+        <div class="form-group">
+          <input type="text" id="autoSubName" list="customerDataList" placeholder="Grahak ka naam...">
+        </div>
+        <div style="display:flex; gap:10px;">
+          <div class="form-group" style="flex:1;">
+            <select id="autoSubShift">
+              <option>Subah</option>
+              <option>Shaam</option>
+            </select>
+          </div>
+          <div class="form-group" style="flex:1;">
+            <select id="autoSubProduct">
+              <option>Doodh</option>
+              <option>Ghee</option>
+              <option>Mahi</option>
+            </select>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <div class="form-group" style="flex:1;">
+            <input type="text" id="autoSubMatra" placeholder="Matra (1.5 L)">
+          </div>
+          <div class="form-group" style="flex:1;">
+            <input type="number" id="autoSubRate" value="60">
+          </div>
+        </div>
+        <button class="btn-add-entry" onclick="saveSubscription()">➕ Set Auto-Entry</button>
+      </div>
+      <h4>Chalu Auto-Entries (Active)</h4>
+      <div id="subscriptionListDiv"></div>
+    </div>
+  </div>
+
+  <div id="payModal" class="modal-overlay no-print">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closePayModal()" style="float:right; font-size:1.5rem; cursor:pointer;">❌</span>
+      <h3 style="margin-top:0;">💳 Payment Collect</h3>
+      <div id="modalStep1">
+        <input type="text" class="search-bar" placeholder="🔍 Search naam..." id="paySearchInput" oninput="renderPayModalList()">
+        <ul class="khata-list" id="payCustomerList" style="max-height: 50vh; overflow-y:auto;"></ul>
+      </div>
+      <div id="modalStep2" style="display:none; text-align:center;">
+        <h3 id="qrCustomerName" style="margin:0; font-size:1.5rem;">Name</h3>
+        <div style="font-size: 2.5rem; color: var(--primary-blue); font-weight: bold; margin: 15px 0;" id="qrAmount">Rs 0</div>
+        <div class="pay-method-group">
+          <button class="pay-btn active" id="mBtnOnline" onclick="setPaymentMode('online', 'modal')">📱 Online</button>
+          <button class="pay-btn" id="mBtnCash" onclick="setPaymentMode('cash', 'modal')">💵 Cash</button>
+        </div>
+        <div class="visual-area" id="modalVisualArea"></div>
+        <p id="modalInstructionTxt" style="font-size: 0.9rem; font-weight:bold;"></p>
+        <button class="btn-add-entry" style="background-color: var(--success-green); margin-top: 15px;" onclick="confirmPayment('modal')">✅ Confirm Received</button>
+        <button class="btn-add-entry" style="background:var(--border-color); color:var(--text-main); margin-top:10px; box-shadow:none;" onclick="backToPayList()">⬅️ Back</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="editEntryModal" class="modal-overlay no-print">
+    <div class="modal-content">
+      <span onclick="closeEditEntryModal()" style="float:right; font-size:1.5rem; cursor:pointer;">❌</span>
+      <h3>✏️ Edit Entry</h3>
+      <input type="hidden" id="editEntryId">
+      <div class="form-group">
+        <label>Date:</label>
+        <input type="date" id="edDate">
+      </div>
+      <div class="form-group">
+        <label>Item:</label>
+        <select id="edProduct">
+          <option>Doodh</option>
+          <option>Ghee</option>
+          <option>Mahi</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Matra:</label>
+        <input type="text" id="edMatra">
+      </div>
+      <div class="form-group">
+        <label>Rate:</label>
+        <input type="number" id="edRate" min="0" step="1">
+      </div>
+      <div class="form-group">
+        <label>Payment Status:</label>
+        <select id="edPayment" onchange="toggleEditPayMode()">
+          <option value="unpaid">Udhaar</option>
+          <option value="paid">Paid</option>
+        </select>
+      </div>
+      <div class="form-group" id="edPayModeGroup" style="display:none;">
+        <label>Mode:</label>
+        <select id="edPayMode">
+          <option value="cash">Cash</option>
+          <option value="online">Online</option>
+        </select>
+      </div>
+      <button class="btn-add-entry" onclick="saveEditedEntry()">Update Entry</button>
+      <button class="btn-add-entry" style="background:var(--danger-red); margin-top:10px;" onclick="deleteEditedEntry()">🗑️ Delete Entry</button>
+    </div>
+  </div>
+
+  <div id="settingsModal" class="modal-overlay no-print">
+    <div class="modal-content">
+      <span onclick="closeSettingsModal()" style="float:right; font-size:1.5rem; cursor:pointer;">❌</span>
+      <h3>⚙️ App Settings</h3>
+      <div class="form-group">
+        <label>Upload QR Image:</label>
+        <input type="file" id="qrUploadInput" accept="image/*" onchange="handleQRUpload(this)">
+      </div>
+      <div id="qrPreviewArea" style="text-align:center; margin:10px 0;">
+        <img id="qrPreviewImg" src="" style="max-width:150px; display:none;">
+      </div>
+      <button class="btn-add-entry" style="background:#10b981; margin-top: 15px;" onclick="exportCSV()">📊 Download Excel (CSV)</button>
+      <button class="btn-add-entry" style="background:var(--border-color); color:var(--text-main); box-shadow:none; margin-top: 10px;" onclick="closeSettingsModal()">Close</button>
+    </div>
+  </div>
+
+  <div id="imageModal">
+      <div class="modal-text">👆 <br> <b>Long Press the bill to Save/Share</b></div>
+      <img id="modalImage" alt="Invoice Image">
+      <button class="btn-close-modal" onclick="closeModal()">Close</button>
+  </div>
+
+  <div id="billArea" style="position: fixed; left: 0; top: 0; opacity: 0; pointer-events: none; z-index: -9999; width: 800px; background: white; padding: 30px; color: black;">
+    <div style="text-align: center; border-bottom: 4px solid #0b3d91; padding-bottom: 20px; margin-bottom: 30px;">
+      <h1 style="font-size: 2.5rem; margin: 0; color: #0b3d91;">SITARAM DAIRY</h1>
+      <p style="margin:5px 0; font-weight:bold; font-size: 1.2rem;">100% Pure & Hygienic Milk</p>
+      <p style="margin:5px 0;">📞 7470701427 | 8963974599</p>
+    </div>
+    <div style="font-size: 1.2rem; display: flex; justify-content: space-between; margin-bottom: 20px;">
+      <div>
+        <p><b>Customer:</b> <span id="bName"></span></p>
+        <p><b>Month:</b> <span id="bMonth"></span></p>
+      </div>
+    </div>
+    <table border="1" width="100%" cellspacing="0" cellpadding="10" style="border-collapse: collapse; margin-top: 20px; font-size: 1.1rem; border-color: #ddd;">
+      <thead style="background-color: #f0f4f8;">
+        <tr>
+          <th style="text-align: left;">Date</th>
+          <th style="text-align: left;">Item</th>
+          <th style="text-align: left;">Qty</th>
+          <th style="text-align: right;">Amount (Rs)</th>
+        </tr>
+      </thead>
+      <tbody id="billTable"></tbody>
+    </table>
+    <div style="text-align:right; margin-top:20px; border-top: 2px solid #ccc; padding-top: 15px;" id="bTotal"></div>
+    <div style="margin-top: 60px; display: flex; justify-content: space-between;">
+      <div style="text-align: center;">
+        <hr style="width: 150px; border-top: 2px solid #000;">
+        <p>Customer Sign</p>
+      </div>
+      <div style="text-align: center;">
+        <h3 style="margin: 0; color: #0b3d91;">Mukesh Soni</h3>
+        <hr style="width: 150px; border-top: 2px solid #000;">
+        <p>Authorized Sign</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- 1. FIREBASE CONFIGURATION ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyCrpQiuWHivJ--t7IyNzycy6PUi8NYhw10",
+      authDomain: "sitaram-dairy.firebaseapp.com",
+      projectId: "sitaram-dairy",
+      storageBucket: "sitaram-dairy.firebasestorage.app",
+      messagingSenderId: "135965768932",
+      appId: "1:135965768932:web:e8420181bdd9efcbb6c0f1"
+    };
+
+    function parseQuantity(m, rate) {
+      m = (m || '').toLowerCase().trim();
+      if (m === 'gap' || m.includes('chhutti') || m.includes('🚫')) {
+        return { dispM: 'Aaj ka Gap 🚫', amount: 0 };
+      }
+      
+      let numStr = m.match(/\d*\.?\d+/);
+      if (!numStr) return null;
+      let num = parseFloat(numStr[0]);
+      let suf = 'L';
+      
+      if (m.includes('ml')) {
+        suf = 'ml';
+      } else if (m.includes('kg')) {
+        suf = 'kg';
+      } else if (m.includes('g')) {
+        suf = 'g';
+      }
+      
+      let amt = (suf === 'ml' || suf === 'g') ? +((num / 1000) * rate).toFixed(2) : +(num * rate).toFixed(2);
+      return { dispM: num + ' ' + suf, amount: amt };
+    }
+
+    function safe(text) {
+      if(!text) return '';
+      return text.toString().replace(/[<>&"'/]/g, c => ({
+        '<':'&lt;',
+        '>':'&gt;',
+        '&':'&amp;',
+        '"':'&quot;', 
+        "'": '&#39;', 
+        '/': '&#x2F;'
+      }[c]));
+    }
+
+    function parseDate(ds) {
+      if (!ds) return null;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(ds)) {
+          let p = ds.split('-');
+          return { y: parseInt(p[0]), m: parseInt(p[1])-1, d: parseInt(p[2]) };
+      }
+      let p = ds.split(/[\/\-]/);
+      if (!p[0] || !p[1] || !p[2]) return null;
+      return { y: parseInt(p[2]), m: parseInt(p[1])-1, d: parseInt(p[0]) };
+    }
+
+    // 🔥 FIX: Safe Storage to prevent Full Storage Crash
+    function safeSetStorage(key, data) {
+      try {
+        localStorage.setItem(key, data);
+      } catch(e) {
+        alert("Storage Full! Backup le lo ⚠️");
+      }
+    }
+
+    // --- 2. DATA INITIALIZATION & PERFORMANCE INDEXING ---
+    let dairyRecords = JSON.parse(localStorage.getItem('sitaramRecords')) || [];
+    let customersData = JSON.parse(localStorage.getItem('sitaramCusts')) || [];
+    let subscriptions = JSON.parse(localStorage.getItem('sitaramSubs')) || [];
+    let savedQR = localStorage.getItem('sitaramCustomQR') || null;
+    
+    let monthlyCache = {};
+    let recordMap = {}; // 🔥 FIX: 10x Speed Performance Index
+    let viewMonth = new Date().getMonth();
+    let viewYear = new Date().getFullYear();
+    let custViewMonth = viewMonth;
+    let custViewYear = viewYear;
+    let curHistName = '';
+    let curPayName = '';
+    let activePaymentMode = 'online';
+    let currentLang = 'hi';
+    
+    let milkChartInstance = null;
+    let chartLoaded = false; // 🔥 FIX: Chart Memory Optimization
+
+    let searchTimeoutHome; 
+    let histSearchTimeout;
+    let syncTimeout;
+    let pendingSync = false;
+    let currentUser = null; // 🔥 FIX: Per-User DB Structure
+
+    // Window events for sync
+    window.addEventListener('offline', () => {
+      showMsg("Phone Offline Hai!", "error");
+    });
+    window.addEventListener('online', triggerSync);
+
+    // 🔥 FIX: Performance Indexing Builder
+    function buildIndex() {
+      recordMap = {};
+      dairyRecords.forEach(r => {
+        if (!recordMap[r.name]) recordMap[r.name] = [];
+        recordMap[r.name].push(r);
+      });
+    }
+
+    window.onload = function() {
+      let d = new Date();
+      d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+      document.getElementById('entryDate').value = d.toISOString().split('T')[0];
+      
+      if(localStorage.getItem('darkMode') === 'true') {
+        document.body.classList.add('dark-mode');
+      }
+      
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
+      
+      // 🔥 FIX: Secure Per-User Auth Logic
+      firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+          currentUser = user;
+          document.getElementById('loginScreen').style.display = 'none';
+          initUserData(); // Load user specific data
+        } else {
+          currentUser = null;
+          document.getElementById('loginScreen').style.display = 'flex';
         }
+      });
 
-        function safe(text) {
-            if(!text) return '';
-            return text.toString().replace(/[<>&"'/]/g, c => ({ '<':'&lt;','>':'&gt;','&':'&amp;','"':'&quot;', "'": '&#39;', '/': '&#x2F;' }[c]));
-        }
+      if (savedQR) {
+        document.getElementById('qrPreviewImg').src = savedQR;
+        document.getElementById('qrPreviewImg').style.display = 'inline-block';
+      }
+    };
 
-        let lastTouchY = 0;
-        document.addEventListener('touchstart', function(e) { lastTouchY = e.touches[0].clientY; }, { passive: true });
-        document.addEventListener('touchmove', function(e) {
-            let currentY = e.touches[0].clientY;
-            let scrollTop = document.scrollingElement.scrollTop || document.documentElement.scrollTop || document.body.scrollTop;
-            if (currentY > lastTouchY && scrollTop <= 0) { e.preventDefault(); }
-        }, { passive: false });
+    // 🔥 FIX: Get user specific database reference
+    function getUserRef() {
+      if (!currentUser) return null;
+      return firebase.database().ref('users/' + currentUser.uid);
+    }
 
-        function safeSetStorage(key, data) {
-            try { localStorage.setItem(key, data); }
-            catch(e) { alert("Storage Full! Kripya purana data delete karein ya File Backup lein."); }
-        }
+    // Load data from Firebase
+    function initUserData() {
+      document.getElementById('cloudStatus').innerText = "☁️ Loading...";
+      let ref = getUserRef();
+      if(!ref) return;
 
-        // --- 2. DATA INITIALIZATION ---
-        let dairyRecords = JSON.parse(localStorage.getItem('sitaramRecords')) || [];
-        let customersData = JSON.parse(localStorage.getItem('sitaramCusts')) || [];
-        let subscriptions = JSON.parse(localStorage.getItem('sitaramSubs')) || [];
-        let savedQR = localStorage.getItem('sitaramCustomQR') || null;
-        let monthlyCache = {};
-        
-        let viewMonth = new Date().getMonth();
-        let viewYear = new Date().getFullYear();
-        let custViewMonth = viewMonth;
-        let custViewYear = viewYear;
-        
-        let curHistName = '';
-        let curPayName = '';
-        let entryMode = 'cash';
-        let modalMode = 'online';
-        let profMode = 'online';
-        let currentLang = 'hi';
-        let milkChartInstance = null;
-
-        // 🔥 FIX 3: Secure Encoded PIN (Decodes to 278003)
-        const SECRET_PIN_ENCODED = "Mjc4MDAz";
-        
-        let searchTimeout;
-        let syncTimeout;
-        let pendingSync = false;
-
-        window.addEventListener('offline', () => { showMsg("Phone Offline Hai!", "error"); });
-        window.addEventListener('online', () => { if(pendingSync) triggerSync(); });
-
-        window.onload = function() {
-            if(sessionStorage.getItem('isLoggedIn') === 'true') {
-                document.getElementById('loginScreen').style.display = 'none';
-            }
+      ref.get().then((snapshot) => {
+        if (snapshot.exists()) {
+          let cloudData = snapshot.val();
+          let cloudTime = cloudData.lastUpdated || 0;
+          let localTime = parseInt(localStorage.getItem('sitaramLastUpdated')) || 0;
+          
+          if (cloudTime > localTime) {
+            dairyRecords = cloudData.records || [];
+            customersData = cloudData.custs || [];
+            subscriptions = cloudData.subs || [];
+            savedQR = cloudData.qr || null;
             
-            document.getElementById('adminPinInput').addEventListener('keypress', function (e) {
-                if (e.key === 'Enter') verifyPin();
-            });
-
-            let d = new Date();
-            d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-            document.getElementById('entryDate').value = d.toISOString().split('T')[0];
-            
-            if(localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark-mode');
-
-            try {
-                if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-                const dbRef = firebase.database().ref('sitaramDairyData');
-                document.getElementById('cloudStatus').innerText = "☁️ Loading...";
-                
-                dbRef.get().then((snapshot) => {
-                    if (snapshot.exists()) {
-                        let cloudData = snapshot.val();
-                        let cloudTime = cloudData.lastUpdated || 0;
-                        let localTime = parseInt(localStorage.getItem('sitaramLastUpdated')) || 0;
-                        
-                        if (cloudTime > localTime) {
-                            dairyRecords = cloudData.records || [];
-                            customersData = cloudData.custs || [];
-                            subscriptions = cloudData.subs || [];
-                            savedQR = cloudData.qr || null;
-                            safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords));
-                            safeSetStorage('sitaramCusts', JSON.stringify(customersData));
-                            safeSetStorage('sitaramSubs', JSON.stringify(subscriptions));
-                            if(savedQR) safeSetStorage('sitaramCustomQR', savedQR);
-                            safeSetStorage('sitaramLastUpdated', cloudTime);
-                            document.getElementById('cloudStatus').innerText = "☁️ Synced";
-                            document.getElementById('cloudStatus').style.color = "#a7f3d0";
-                        } else if (localTime > cloudTime) {
-                            triggerSync();
-                        } else {
-                            document.getElementById('cloudStatus').innerText = "☁️ Synced";
-                            document.getElementById('cloudStatus').style.color = "#a7f3d0";
-                        }
-                    } else {
-                        if (dairyRecords.length > 0 || customersData.length > 0) triggerSync();
-                        else document.getElementById('cloudStatus').innerText = "☁️ Ready";
-                    }
-                    runAutoEntries();
-                    setTimeout(() => { updateMonthDisplay(); refreshAll(); }, 300);
-                }).catch((error) => {
-                    document.getElementById('cloudStatus').innerText = "☁️ Offline Mode";
-                    document.getElementById('cloudStatus').style.color = "#fef08a";
-                    runAutoEntries();
-                    setTimeout(() => { updateMonthDisplay(); refreshAll(); }, 300);
-                });
-            } catch(e) {
-                document.getElementById('cloudStatus').innerText = "☁️ Offline Mode";
-                document.getElementById('cloudStatus').style.color = "#fef08a";
-                runAutoEntries();
-                setTimeout(() => { updateMonthDisplay(); refreshAll(); }, 300);
-            }
-
-            if (savedQR) {
-                document.getElementById('qrPreviewImg').src = savedQR;
-                document.getElementById('qrPreviewImg').style.display = 'inline-block';
-            }
-        };
-
-        // --- ALL THE JS FUNCTIONS EXACTLY AS YOU WROTE THEM ---
-
-        function openAutoEntryModal() {
-            updateDropdown();
-            renderSubscriptions();
-            document.getElementById('autoEntryModal').style.display = 'flex';
-        }
-
-        function saveSubscription() {
-            let n = document.getElementById('autoSubName').value.trim();
-            if(!n) return alert("Kripya Grahak ka naam bharein!");
-            let shift = document.getElementById('autoSubShift').value;
-            let product = document.getElementById('autoSubProduct').value;
-            let rawM = document.getElementById('autoSubMatra').value;
-            let rate = parseFloat(document.getElementById('autoSubRate').value);
-            if(isNaN(rate)) return alert("Rate bharein!");
-            
-            let parsed = parseQuantity(rawM, rate);
-            if(!parsed) return alert("Invalid Matra Format! (Jaise: 1.5, 500)");
-            
-            n = saveCustomerSilent(n);
-            
-            let existing = subscriptions.find(s => s.name === n && s.shift === shift && s.product === product);
-            if(existing) {
-                existing.matra = parsed.dispM;
-                existing.rate = rate;
-                existing.amount = parsed.amount;
-                showMsg("Auto-Entry Update Ho Gayi!", "success");
-            } else {
-                subscriptions.push({
-                    id: crypto.randomUUID ? crypto.randomUUID() : Date.now() + Math.random().toString().slice(2,6),
-                    name: n, shift: shift, product: product, matra: parsed.dispM, rate: rate, amount: parsed.amount
-                });
-                showMsg("Nayi Auto-Entry Set Ho Gayi!", "success");
-            }
-            
-            safeSetStorage('sitaramSubs', JSON.stringify(subscriptions));
-            
-            let todayStr = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
-            if (localStorage.getItem('sitaramAutoRun') === todayStr) {
-                let exists = dairyRecords.find(r => r.date === todayStr && r.name === n && r.shift === shift && r.product === product && r.matra === parsed.dispM);
-                if (!exists) {
-                    dairyRecords.push({
-                        id: crypto.randomUUID ? crypto.randomUUID() : Date.now() + Math.random().toString().slice(2,6),
-                        date: todayStr, name: n, product: product, shift: shift, matra: parsed.dispM, rate: rate, amount: parsed.amount,
-                        payment: 'unpaid', payMode: null, payDate: null
-                    });
-                    safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords));
-                    clearCache(); refreshAll();
-                    showMsg("Auto-Entry Set + Aaj ki entry add ho gayi!", "success");
-                }
-            }
-            triggerSync();
-            document.getElementById('autoSubName').value = '';
-            document.getElementById('autoSubMatra').value = '';
-            renderSubscriptions();
-        }
-
-        function deleteSubscription(id) {
-            if(confirm("Kya is Auto-Entry ko hatana chahte hain?")) {
-                subscriptions = subscriptions.filter(s => s.id != id);
-                safeSetStorage('sitaramSubs', JSON.stringify(subscriptions));
-                triggerSync();
-                renderSubscriptions();
-                showMsg("Auto-Entry Hata Di Gayi!", "error");
-            }
-        }
-
-        function renderSubscriptions() {
-            let div = document.getElementById('subscriptionListDiv');
-            div.innerHTML = '';
-            if(subscriptions.length === 0) {
-                div.innerHTML = '<p style="text-align:center; color:#888;">Koi active auto-entry nahi hai.</p>';
-                return;
-            }
-            subscriptions.forEach(s => {
-                let icon = (s.shift === 'Subah') ? 'shift-morning' : 'shift-evening';
-                div.innerHTML += `
-                <div class="khata-item" style="padding: 10px;">
-                    <div class="shift-icon ${icon}" style="width:30px; height:30px; font-size:1rem;">${s.shift[0]}</div>
-                    <div style="flex:1; line-height: 1.2;">
-                        <b>${safe(s.name)}</b><br>
-                        <small>${s.product} | ${s.matra} @ Rs ${s.rate}</small>
-                    </div>
-                    <button class="action-btn" style="box-shadow:none; background:none; color:var(--danger-red); flex:0;" onclick="deleteSubscription('${s.id}')">🗑️</button>
-                </div>`;
-            });
-        }
-
-        function runAutoEntries() {
-            let today = new Date();
-            today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
-            let todayStr = today.toISOString().split('T')[0];
-            let lastRun = localStorage.getItem('sitaramAutoRun');
-            
-            if (lastRun !== todayStr && subscriptions.length > 0) {
-                let addedCount = 0;
-                subscriptions.forEach(sub => {
-                    let exists = dairyRecords.find(r => r.date === todayStr && r.name === sub.name && r.shift === sub.shift && r.product === sub.product && r.matra === sub.matra);
-                    if (!exists) {
-                        dairyRecords.push({
-                            id: crypto.randomUUID ? crypto.randomUUID() : Date.now() + Math.random().toString().slice(2,6),
-                            date: todayStr, name: sub.name, product: sub.product, shift: sub.shift, matra: sub.matra, rate: sub.rate, amount: sub.amount,
-                            payment: 'unpaid', payMode: null, payDate: null
-                        });
-                        addedCount++;
-                    }
-                });
-                if (addedCount > 0) {
-                    safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords));
-                    triggerSync();
-                    showMsg(addedCount + " Automatic Entries aaj add ho gayi!", "success");
-                }
-                safeSetStorage('sitaramAutoRun', todayStr);
-            }
-        }
-
-        function verifyPin() {
-            if(document.getElementById('adminPinInput').value === atob(SECRET_PIN_ENCODED)) {
-                document.getElementById('loginScreen').style.display = 'none';
-                sessionStorage.setItem('isLoggedIn', 'true');
-            } else {
-                document.getElementById('loginMessage').innerText = "❌ Galat PIN! Kripya sahi PIN daalein.";
-                document.getElementById('adminPinInput').value = '';
-            }
-        }
-
-        function lockApp() {
-            sessionStorage.removeItem('isLoggedIn');
-            document.getElementById('adminPinInput').value = '';
-            document.getElementById('loginMessage').innerText = '';
-            document.getElementById('loginScreen').style.display = 'flex';
-            closeSidebar();
-        }
-
-        function manualRefresh() { if(confirm("App refresh karna hai?")) location.reload(); }
-
-        function showMsg(msg, type) {
-            let box = document.getElementById('toastBox');
-            box.innerText = msg;
-            box.className = type === 'error' ? 'toast-error' : 'toast-success';
-            box.style.display = 'block';
-            setTimeout(() => { box.style.display = 'none'; }, 3000);
-        }
-
-        function triggerSync() {
-            pendingSync = true;
-            clearTimeout(syncTimeout);
-            document.getElementById('cloudStatus').innerText = "☁️ Saving...";
-            syncTimeout = setTimeout(() => {
-                if(!navigator.onLine) {
-                    document.getElementById('cloudStatus').innerText = "☁️ Offline Mode";
-                    document.getElementById('cloudStatus').style.color = "#fef08a";
-                    return;
-                }
-                let now = Date.now();
-                safeSetStorage('sitaramLastUpdated', now);
-                try {
-                    firebase.database().ref('sitaramDairyData').update({
-                        records: dairyRecords, custs: customersData, subs: subscriptions, qr: savedQR || "", lastUpdated: now
-                    }).then(() => {
-                        pendingSync = false;
-                        document.getElementById('cloudStatus').innerText = "☁️ Synced";
-                        document.getElementById('cloudStatus').style.color = "#a7f3d0";
-                    }).catch((e) => {
-                        document.getElementById('cloudStatus').innerText = "☁️ Saving Offline...";
-                        document.getElementById('cloudStatus').style.color = "#fef08a";
-                    });
-                } catch(e) {}
-            }, 2000);
-        }
-
-        function toggleDarkMode() {
-            let isDark = document.body.classList.toggle('dark-mode');
-            safeSetStorage('darkMode', isDark);
-            showMsg(isDark ? "Dark Mode ON 🌙" : "Light Mode ON ☀️", "success");
-            renderCharts();
-            closeSidebar();
-        }
-
-        function downloadBackup() {
-            let backupObj = { records: dairyRecords, custs: customersData, subs: subscriptions, qr: savedQR };
-            let blob = new Blob([JSON.stringify(backupObj)], { type: "application/json" });
-            let url = URL.createObjectURL(blob);
-            let a = document.createElement('a');
-            a.href = url;
-            a.download = "SitaramDairy_App_Backup_" + new Date().toISOString().split('T')[0] + ".json";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-            showMsg("App Backup File Download Ho Gayi!", "success");
-        }
-
-        function restoreBackup(input) {
-            if (input.files && input.files[0]) {
-                let reader = new FileReader();
-                reader.onload = function(e) {
-                    try {
-                        let backupObj = JSON.parse(e.target.result);
-                        if (backupObj.records && backupObj.custs) {
-                            if (confirm("WARNING!\nKya aap sach mein purana backup wapas laana chahte hain?")) {
-                                safeSetStorage('sitaramRecords', JSON.stringify(backupObj.records));
-                                safeSetStorage('sitaramCusts', JSON.stringify(backupObj.custs));
-                                if(backupObj.subs) safeSetStorage('sitaramSubs', JSON.stringify(backupObj.subs));
-                                if(backupObj.qr) safeSetStorage('sitaramCustomQR', backupObj.qr);
-                                location.reload();
-                            }
-                        } else alert("Error: Yeh file sahi backup nahi hai.");
-                    } catch (err) { alert("Error: File format galat hai."); }
-                };
-                reader.readAsText(input.files[0]);
-            }
-            input.value = '';
-        }
-
-        function openSidebar() {
-            document.getElementById('sidebarOverlay').style.display = 'block';
-            setTimeout(() => {
-                document.getElementById('sidebarOverlay').style.opacity = '1';
-                document.getElementById('sidebar').style.left = '0';
-            }, 10);
-        }
-
-        function closeSidebar() {
-            document.getElementById('sidebarOverlay').style.opacity = '0';
-            document.getElementById('sidebar').style.left = '-280px';
-            setTimeout(() => { document.getElementById('sidebarOverlay').style.display = 'none'; }, 300);
-        }
-
-        function switchTab(i) {
-            if (milkChartInstance) { milkChartInstance.destroy(); milkChartInstance = null; }
-            document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
-            if (i < 4) document.querySelectorAll('.nav-item')[i].classList.add('active');
-            document.getElementById('slideWrapper').style.transform = `translateX(-${i * 25}%)`;
-            
-            if (i === 0) displayDashboard();
-            if (i === 1) updateDropdown();
-            if (i === 2) openHistory();
-            if (i === 3) renderCustList();
-        }
-
-        function toggleLanguage() {
-            currentLang = currentLang === 'hi' ? 'en' : 'hi';
-            showMsg("Language Toggled (Demo)", "success");
-            closeSidebar();
-        }
-
-        function openSettingsModal() { document.getElementById('settingsModal').style.display = 'flex'; closeSidebar(); }
-        function closeSettingsModal() { document.getElementById('settingsModal').style.display = 'none'; }
-
-        function handleQRUpload(input) {
-            if (input.files && input.files[0]) {
-                let reader = new FileReader();
-                reader.onload = function(e) {
-                    let img = new Image();
-                    img.onload = function() {
-                        let canvas = document.createElement('canvas');
-                        let ctx = canvas.getContext('2d');
-                        let maxW = 500, maxH = 500;
-                        let width = img.width, height = img.height;
-                        if (width > height) { if (width > maxW) { height *= maxW / width; width = maxW; } }
-                        else { if (height > maxH) { width *= maxH / height; height = maxH; } }
-                        canvas.width = width; canvas.height = height;
-                        ctx.drawImage(img, 0, 0, width, height);
-                        savedQR = canvas.toDataURL('image/jpeg', 0.5);
-                        try {
-                            safeSetStorage('sitaramCustomQR', savedQR);
-                            triggerSync();
-                            document.getElementById('qrPreviewImg').src = savedQR;
-                            document.getElementById('qrPreviewImg').style.display = 'inline-block';
-                            showMsg("QR Code Update Ho Gaya!", "success");
-                        } catch(err) { alert("Error: Image is still too large."); }
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        function saveCustomerBtn() {
-            let id = document.getElementById('editCustId').value;
-            let n = document.getElementById('cName').value.trim();
-            let p = document.getElementById('cPhone').value.replace(/\s/g, '');
-            let a = document.getElementById('cAddress').value.trim();
-            if (!n) return alert("Kripya Naam bhariye!");
-            if (p && !/^[6-9]\d{9}$/.test(p)) return alert("Kripya 10 anko ka sahi mobile number daalein!");
-            
-            n = n.charAt(0).toUpperCase() + n.slice(1).toLowerCase();
-            if (id) {
-                let c = customersData.find(x => x.id == id);
-                if(!c) return;
-                if (c.name !== n) {
-                    dairyRecords.forEach(r => { if (r.name === c.name) r.name = n; });
-                    subscriptions.forEach(s => { if (s.name === c.name) s.name = n; });
-                }
-                c.name = n; c.phone = p; c.address = a;
-                showMsg("Grahak Update Ho Gaya!", "success");
-            } else {
-                if (customersData.some(c => c.name.toLowerCase() === n.toLowerCase())) return alert("Ye naam pehle se maujood hai!");
-                customersData.push({ id: crypto.randomUUID ? crypto.randomUUID() : Date.now(), name: n, phone: p, address: a });
-                showMsg("Naya Grahak Add Ho Gaya!", "success");
-            }
-            safeSetStorage('sitaramCusts', JSON.stringify(customersData));
             safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords));
+            safeSetStorage('sitaramCusts', JSON.stringify(customersData));
             safeSetStorage('sitaramSubs', JSON.stringify(subscriptions));
-            triggerSync(); clearCache(); resetCustomerForm(); refreshAll();
+            if(savedQR) safeSetStorage('sitaramCustomQR', savedQR);
+            safeSetStorage('sitaramLastUpdated', cloudTime);
+          } else if (localTime > cloudTime) {
+            triggerSync();
+          }
+        } else {
+          if (dairyRecords.length > 0 || customersData.length > 0) {
+            triggerSync();
+          }
         }
-
-        function saveCustomerSilent(n) {
-            n = n.charAt(0).toUpperCase() + n.slice(1).toLowerCase();
-            if (!customersData.some(c => c.name.toLowerCase() === n.toLowerCase())) {
-                customersData.push({ id: crypto.randomUUID ? crypto.randomUUID() : Date.now(), name: n, phone: '', address: '' });
-                safeSetStorage('sitaramCusts', JSON.stringify(customersData));
-                triggerSync();
-            }
-            return n;
-        }
-
-        function resetCustomerForm() {
-            document.getElementById('editCustId').value = '';
-            document.getElementById('cName').value = '';
-            document.getElementById('cPhone').value = '';
-            document.getElementById('cAddress').value = '';
-            document.getElementById('cancelEditBtn').style.display = 'none';
-        }
-
-        function renderCustList() {
-            const div = document.getElementById('customerListDiv'); div.innerHTML = '';
-            customersData.sort((a,b) => a.name.localeCompare(b.name)).forEach(c => {
-                let nameInit = c.name && c.name.length > 0 ? c.name[0] : 'S';
-                div.innerHTML += `
-                <div class="khata-item">
-                    <div class="shift-icon" style="background:#e0e7ff; color:var(--primary-blue); font-weight:bold;">${safe(nameInit.toUpperCase())}</div>
-                    <div style="flex:1;"><b>${safe(c.name)}</b><br><small>${safe(c.phone || '')}</small></div>
-                    <button class="action-btn" style="box-shadow:none; background:none;" onclick="editCust('${c.id}')">✏️</button>
-                    <button class="action-btn" style="box-shadow:none; background:none; color:var(--danger-red);" onclick="deleteCust('${c.id}', '${safe(c.name)}')">🗑️</button>
-                </div>`;
-            });
-        }
-
-        function editCust(id) {
-            let c = customersData.find(x => x.id == id); if(!c) return;
-            document.getElementById('editCustId').value = c.id;
-            document.getElementById('cName').value = c.name;
-            document.getElementById('cPhone').value = c.phone || '';
-            document.getElementById('cAddress').value = c.address || '';
-            document.getElementById('cancelEditBtn').style.display = 'block';
-            document.getElementById('pageCustomers').scrollTop = 0;
-        }
-
-        function deleteCust(id, name) {
-            if (confirm(`Kya aap sach mein '${name}' ko mitaana chahte hain?\nIsse judi saari entries aur auto-entry bhi hamesha ke liye delete ho jayेंगी!`)) {
-                customersData = customersData.filter(c => c.id != id);
-                subscriptions = subscriptions.filter(s => s.name !== name);
-                dairyRecords = dairyRecords.filter(r => r.name !== name);
-                safeSetStorage('sitaramCusts', JSON.stringify(customersData));
-                safeSetStorage('sitaramSubs', JSON.stringify(subscriptions));
-                safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords));
-                triggerSync(); clearCache(); refreshAll();
-                showMsg("Grahak Pura Delete Ho Gaya!", "error");
-            }
-        }
-
-        function updateDropdown() {
-            const s = document.getElementById('customerDataList'); s.innerHTML = '';
-            let names = new Set(dairyRecords.map(r => r.name));
-            customersData.forEach(c => names.add(c.name));
-            Array.from(names).sort().forEach(n => { s.innerHTML += `<option value="${safe(n)}">`; });
-        }
-
-        function parseDate(ds) {
-            if (!ds) return null;
-            let p = ds.includes('-') ? ds.split('-') : ds.split(/[\/\-]/);
-            if (!p[0] || !p[1] || !p[2]) return null;
-            if (ds.includes('-')) return { y: parseInt(p[0]), m: parseInt(p[1])-1, d: parseInt(p[2]) };
-            return { y: parseInt(p[2]), m: parseInt(p[1])-1, d: parseInt(p[0]) };
-        }
-
-        function isMatch(ds) { let o = parseDate(ds); return o && o.m === viewMonth && o.y === viewYear; }
-        function clearCache() { delete monthlyCache[`${viewMonth}-${viewYear}`]; }
         
-        function getFilteredRecords() {
-            let key = `${viewMonth}-${viewYear}`;
-            if (monthlyCache[key]) return monthlyCache[key];
-            let data = dairyRecords.filter(r => isMatch(r.date));
-            monthlyCache[key] = data; return data;
+        buildIndex();
+        document.getElementById('cloudStatus').innerText = "☁️ Synced";
+        document.getElementById('cloudStatus').style.color = "#a7f3d0";
+        runAutoEntries();
+        updateMonthDisplay();
+        refreshAll();
+
+      }).catch((error) => {
+        document.getElementById('cloudStatus').innerText = "☁️ Offline Mode";
+        document.getElementById('cloudStatus').style.color = "#fef08a";
+        buildIndex();
+        runAutoEntries();
+        updateMonthDisplay();
+        refreshAll();
+      });
+    }
+
+    // --- GOOGLE AUTH FUNCTIONS ---
+    function googleLogin() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      firebase.auth().signInWithPopup(provider).then((result) => {
+        showMsg("Welcome, " + result.user.displayName + "!", "success");
+      }).catch((error) => {
+        alert("Login Failed: " + error.message);
+      });
+    }
+
+    function lockApp() {
+      if (confirm("Kya aap sach mein logout karna chahte hain?")) {
+        firebase.auth().signOut().then(() => {
+          closeSidebar();
+        });
+      }
+    }
+
+    // --- DASHBOARD AND MISSING FUNCTIONS ---
+    function updateMonthDisplay() {
+      const mNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+      document.getElementById('currentMonthText').innerText = `${mNames[viewMonth]} ${viewYear}`;
+    }
+
+    function prevMonth() {
+      viewMonth--;
+      if (viewMonth < 0) {
+        viewMonth = 11;
+        viewYear--;
+      }
+      updateMonthDisplay();
+      clearCache();
+      refreshAll();
+    }
+
+    function nextMonth() {
+      viewMonth++;
+      if (viewMonth > 11) {
+        viewMonth = 0;
+        viewYear++;
+      }
+      updateMonthDisplay();
+      clearCache();
+      refreshAll();
+    }
+
+    // 🔥 FIX: Chart Memory Optimization
+    function renderCharts() {
+      if (!document.getElementById('milkChart')) return;
+      const ctx = document.getElementById('milkChart').getContext('2d');
+      if (milkChartInstance) { 
+        milkChartInstance.destroy(); 
+      }
+      
+      let mRecs = getFilteredRecords();
+      let dailyMilk = {};
+      let daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+      for(let i=1; i<=daysInMonth; i++) {
+        dailyMilk[i] = 0;
+      }
+      
+      mRecs.forEach(r => {
+        if(r.product === 'Doodh' && !r.matra.includes('🚫')) {
+          let d = parseDate(r.date);
+          if(d && d.m === viewMonth && d.y === viewYear) {
+            let numStr = r.matra.match(/\d*\.?\d+/);
+            if(numStr) {
+              let v = parseFloat(numStr[0]);
+              if(r.matra.toLowerCase().includes('ml')) {
+                v /= 1000;
+              }
+              dailyMilk[d.d] += v;
+            }
+          }
         }
-
-        function refreshAll() { displayDashboard(); renderHistoryList(); renderCustList(); updateDropdown(); }
-
-        function toggleEntryPayMethod() { document.getElementById('entryPayMethodDiv').style.display = document.getElementById('payment').value === 'paid' ? 'block' : 'none'; }
-        function toggleEditPayMode() { document.getElementById('edPayModeGroup').style.display = document.getElementById('edPayment').value === 'paid' ? 'block' : 'none'; }
-        
-        function setEntryMode(m) {
-            entryMode = m;
-            if (m === 'cash') { document.getElementById('eBtnCash').classList.add('active'); document.getElementById('eBtnOnline').classList.remove('active'); }
-            else { document.getElementById('eBtnCash').classList.remove('active'); document.getElementById('eBtnOnline').classList.add('active'); }
+      });
+      
+      milkChartInstance = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: Object.keys(dailyMilk),
+          datasets: [{
+            label: 'Milk (Liters)',
+            data: Object.values(dailyMilk),
+            backgroundColor: 'rgba(21, 101, 192, 0.6)',
+            borderColor: 'rgba(21, 101, 192, 1)',
+            borderWidth: 1,
+            borderRadius: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          scales: {
+            y: {
+              beginAtZero: true
+            }
+          }
         }
+      });
+    }
 
-        function saveRecord() {
-            let n = document.getElementById('customerSelectInput').value.trim();
-            if (!n) return alert("Kripya Grahak ka naam bharein!");
-            let r = parseFloat(document.getElementById('rate').value);
-            if(isNaN(r)) return alert("Rate bharein!");
-            let p = document.getElementById('payment').value;
-            let dVal = document.getElementById('entryDate').value;
-            if (!dVal) { let d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); dVal = d.toISOString().split('T')[0]; }
-            let rawM = document.getElementById('matra').value;
-            
-            let parsed = parseQuantity(rawM, r);
-            if(!parsed) return alert("Invalid Matra! (Jaise: 1.5 L, 500, 250)");
-            
-            n = saveCustomerSilent(n);
-            let finalPayMode = (!parsed.dispM.includes('🚫') && p !== 'unpaid') ? entryMode : null;
-            let finalPayDate = (!parsed.dispM.includes('🚫') && p !== 'unpaid') ? dVal : null;
-            
+    // --- AUTO ENTRY ---
+    function openAutoEntryModal() {
+      updateDropdown();
+      renderSubscriptions();
+      document.getElementById('autoEntryModal').style.display = 'flex';
+    }
+
+    function saveSubscription() {
+      let n = document.getElementById('autoSubName').value.trim();
+      let shift = document.getElementById('autoSubShift').value;
+      let product = document.getElementById('autoSubProduct').value;
+      let rawM = document.getElementById('autoSubMatra').value;
+      let rate = parseFloat(document.getElementById('autoSubRate').value);
+      
+      if (!n || n.length < 2) return alert("Sahi Grahak ka naam bharein!");
+      if(isNaN(rate)) return alert("Rate bharein!");
+      
+      let parsed = parseQuantity(rawM, rate);
+      if(!parsed) return alert("Invalid Matra!");
+      
+      n = saveCustomerSilent(n);
+      
+      let existing = subscriptions.find(s => s.name === n && s.shift === shift && s.product === product);
+      if(existing) {
+        existing.matra = parsed.dispM;
+        existing.rate = rate;
+        existing.amount = parsed.amount;
+        showMsg("Auto-Entry Updated!", "success");
+      } else {
+        subscriptions.push({
+          id: Date.now().toString(),
+          name: n,
+          shift: shift,
+          product: product,
+          matra: parsed.dispM,
+          rate: rate,
+          amount: parsed.amount
+        });
+        showMsg("Auto-Entry Set!", "success");
+      }
+      
+      safeSetStorage('sitaramSubs', JSON.stringify(subscriptions));
+      triggerSync();
+      document.getElementById('autoSubName').value = '';
+      document.getElementById('autoSubMatra').value = '';
+      renderSubscriptions();
+    }
+
+    function deleteSubscription(id) {
+      if(confirm("Auto-Entry hatayein?")) {
+        subscriptions = subscriptions.filter(s => s.id != id);
+        safeSetStorage('sitaramSubs', JSON.stringify(subscriptions));
+        triggerSync();
+        renderSubscriptions();
+      }
+    }
+
+    function renderSubscriptions() {
+      let div = document.getElementById('subscriptionListDiv');
+      div.innerHTML = '';
+      if(subscriptions.length === 0) {
+        return div.innerHTML = '<p style="text-align:center;">Koi active auto-entry nahi.</p>';
+      }
+      
+      subscriptions.forEach(s => {
+        let icon = s.shift === 'Subah' ? '#f59e0b' : '#3b82f6';
+        div.innerHTML += `
+          <div class="khata-item">
+            <div class="khata-avatar" style="background:${icon};">${safe(s.shift[0])}</div>
+            <div class="khata-details">
+              <b>${safe(s.name)}</b>
+              <small>${safe(s.matra)} @ Rs ${safe(s.rate)}</small>
+            </div>
+            <button class="khata-add-btn" style="background:#fee2e2; color:red;" onclick="deleteSubscription('${s.id}')">🗑️</button>
+          </div>`;
+      });
+    }
+
+    function runAutoEntries() {
+      let todayStr = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+      if (localStorage.getItem('sitaramAutoRun') !== todayStr && subscriptions.length > 0) {
+        let added = 0;
+        subscriptions.forEach(sub => {
+          if (!dairyRecords.some(r => r.date === todayStr && r.name === sub.name && r.shift === sub.shift && r.product === sub.product)) {
             dairyRecords.push({
-                id: crypto.randomUUID ? crypto.randomUUID() : Date.now() + Math.random().toString().slice(2,6),
-                date: dVal, name: n, product: document.getElementById('product').value, shift: document.getElementById('shift').value,
-                matra: parsed.dispM, rate: r, amount: parsed.amount, payment: p, payMode: finalPayMode, payDate: finalPayDate
+              id: Date.now() + Math.random(),
+              date: todayStr,
+              name: sub.name,
+              product: sub.product,
+              shift: sub.shift,
+              matra: sub.matra,
+              rate: sub.rate,
+              amount: sub.amount,
+              payment: 'unpaid',
+              payMode: null,
+              payDate: null
             });
-            
-            safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords)); triggerSync();
-            document.getElementById('matra').value = ''; document.getElementById('customerSelectInput').value = '';
-            
-            let dt = new Date(); dt.setMinutes(dt.getMinutes() - dt.getTimezoneOffset());
-            document.getElementById('entryDate').value = dt.toISOString().split('T')[0];
-            
-            let dObj = parseDate(dVal); viewMonth = dObj.m; viewYear = dObj.y;
-            clearCache(); updateMonthDisplay(); refreshAll(); showMsg("Entry Save Ho Gayi!", "success"); switchTab(0);
+            added++;
+          }
+        });
+        if (added > 0) {
+          buildIndex(); // update index
+          safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords));
+          triggerSync();
+          showMsg(added + " Auto Entries Added!", "success");
         }
+        safeSetStorage('sitaramAutoRun', todayStr);
+      }
+    }
 
-        function openEditEntry(id) {
-            let r = dairyRecords.find(x => x.id === id || x.id == id); if (!r) return;
-            document.getElementById('editEntryId').value = r.id;
-            let dObj = parseDate(r.date);
-            document.getElementById('edDate').value = `${dObj.y}-${String(dObj.m + 1).padStart(2, '0')}-${String(dObj.d).padStart(2, '0')}`;
-            document.getElementById('edProduct').value = r.product || 'Doodh';
-            document.getElementById('edMatra').value = r.matra.includes('🚫') ? 'gap' : r.matra;
-            document.getElementById('edRate').value = r.rate;
-            document.getElementById('edPayment').value = r.payment;
-            if(r.payment === 'paid') { document.getElementById('edPayModeGroup').style.display = 'block'; document.getElementById('edPayMode').value = r.payMode || 'cash'; }
-            else { document.getElementById('edPayModeGroup').style.display = 'none'; }
-            document.getElementById('editEntryModal').style.display = 'flex';
+    // --- UTILS ---
+    function manualRefresh() {
+      if(confirm("Refresh karein?")) location.reload();
+    }
+
+    function showMsg(msg, type) {
+      let b = document.getElementById('toastBox');
+      b.innerText = msg;
+      b.className = type === 'error' ? 'toast-error' : 'toast-success';
+      b.style.display = 'block';
+      b.style.animation = 'none';
+      void b.offsetWidth;
+      b.style.animation = 'fadeInOut 3s';
+      setTimeout(() => b.style.display = 'none', 2900);
+    }
+
+    // 🔥 FIX: Per-User Secure Syncing
+    function triggerSync() {
+      if (!currentUser) return; // Prevent sync if not logged in
+      
+      pendingSync = true;
+      clearTimeout(syncTimeout);
+      document.getElementById('cloudStatus').innerText = "☁️ Saving...";
+      
+      syncTimeout = setTimeout(() => {
+        if(!navigator.onLine) return document.getElementById('cloudStatus').innerText = "☁️ Offline";
+        let now = Date.now();
+        safeSetStorage('sitaramLastUpdated', now);
+        
+        let ref = getUserRef();
+        if(ref) {
+          ref.update({
+            records: dairyRecords,
+            custs: customersData,
+            subs: subscriptions,
+            qr: savedQR || "",
+            lastUpdated: now
+          }).then(() => {
+            document.getElementById('cloudStatus').innerText = "☁️ Synced";
+            document.getElementById('cloudStatus').style.color = "#a7f3d0";
+          }).catch(() => {
+            showMsg("Sync Failed ❌", "error");
+          });
         }
+      }, 2000);
+    }
 
-        function closeEditEntryModal() { document.getElementById('editEntryModal').style.display = 'none'; }
+    function toggleDarkMode() {
+      let isD = document.body.classList.toggle('dark-mode');
+      safeSetStorage('darkMode', isD);
+      closeSidebar();
+    }
 
-        function deleteEditedEntry() {
-            if (confirm("Kya aap is entry ko hamesha ke liye delete karna chahte hain?")) {
-                let id = document.getElementById('editEntryId').value;
-                dairyRecords = dairyRecords.filter(r => r.id !== id && r.id != id);
-                safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords));
-                triggerSync(); closeEditEntryModal(); clearCache(); refreshAll(); showMsg("Entry Delete Ho Gayi!", "error");
-                if (curHistName) { let activeTab = document.querySelector('.cust-nav-tab.active').id.replace('t','').toLowerCase(); openCustTab(activeTab); }
+    function downloadBackup() {
+      let b = new Blob([JSON.stringify({ records: dairyRecords, custs: customersData, subs: subscriptions, qr: savedQR })], { type: "application/json" });
+      let a = document.createElement('a');
+      a.href = URL.createObjectURL(b);
+      a.download = "SitaramDairy_Backup.json";
+      a.click();
+      showMsg("Backup Downloaded!", "success");
+    }
+
+    function restoreBackup(input) {
+      if (input.files && input.files[0]) {
+        let r = new FileReader();
+        r.onload = function(e) {
+          try {
+            let obj = JSON.parse(e.target.result);
+            if (obj.records && obj.custs) {
+              if (confirm("Restore backup? Data will be overwritten.")) {
+                safeSetStorage('sitaramRecords', JSON.stringify(obj.records));
+                safeSetStorage('sitaramCusts', JSON.stringify(obj.custs));
+                if(obj.subs) safeSetStorage('sitaramSubs', JSON.stringify(obj.subs));
+                location.reload();
+              }
             }
+          } catch (err) {
+            alert("Invalid File.");
+          }
+        };
+        r.readAsText(input.files[0]);
+      }
+    }
+
+    function openSidebar() {
+      document.getElementById('sidebarOverlay').style.display='block';
+      setTimeout(()=>document.getElementById('sidebarOverlay').style.opacity='1',10);
+      document.getElementById('sidebar').style.left='0';
+    }
+
+    function closeSidebar() {
+      document.getElementById('sidebarOverlay').style.opacity='0';
+      document.getElementById('sidebar').style.left='-280px';
+      setTimeout(()=>document.getElementById('sidebarOverlay').style.display='none',300);
+    }
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'hi' ? 'en' : 'hi';
+      showMsg("Language Toggled", "success");
+      closeSidebar();
+    }
+
+    function openSettingsModal() {
+      document.getElementById('settingsModal').style.display='flex';
+      closeSidebar();
+    }
+
+    function closeSettingsModal() {
+      document.getElementById('settingsModal').style.display='none';
+    }
+
+    function handleQRUpload(input) {
+      if (input.files && input.files[0]) {
+        let r = new FileReader();
+        r.onload = function(e) {
+          let img = new Image();
+          img.onload = function() {
+            let canvas = document.createElement('canvas');
+            let ctx = canvas.getContext('2d');
+            let w = img.width, h = img.height;
+            if(w>500) { h*=500/w; w=500; }
+            canvas.width = w;
+            canvas.height = h;
+            ctx.drawImage(img, 0, 0, w, h);
+            savedQR = canvas.toDataURL('image/jpeg', 0.5);
+            safeSetStorage('sitaramCustomQR', savedQR);
+            triggerSync();
+            document.getElementById('qrPreviewImg').src = savedQR;
+            document.getElementById('qrPreviewImg').style.display = 'inline-block';
+            showMsg("QR Updated!", "success");
+          };
+          img.src = e.target.result;
+        };
+        r.readAsDataURL(input.files[0]);
+      }
+    }
+
+    // --- CORE LOGIC ---
+    function switchTab(i) {
+      document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
+      if (i < 4) document.querySelectorAll('.nav-item')[i].classList.add('active');
+      document.getElementById('slideWrapper').style.transform = `translateX(-${i * 25}%)`;
+      if (i === 0) displayDashboard();
+      if (i === 1) updateDropdown();
+      if (i === 2) {
+        document.getElementById('historyDetailView').style.display = 'none';
+        document.getElementById('historyListView').style.display = 'block';
+        renderHistoryList();
+      }
+      if (i === 3) renderCustList();
+    }
+    
+    function saveCustomerBtn() {
+      let id = document.getElementById('editCustId').value;
+      let n = document.getElementById('cName').value.trim();
+      let p = document.getElementById('cPhone').value.replace(/\s/g, '');
+      let a = document.getElementById('cAddress').value.trim();
+      
+      if (!n || n.length < 2) return alert("Sahi Grahak ka naam bharein!");
+      n = n.charAt(0).toUpperCase() + n.slice(1).toLowerCase();
+      
+      if (id) {
+        let c = customersData.find(x => x.id == id);
+        if(!c) return;
+        if (c.name !== n) {
+          dairyRecords.forEach(r => { if (r.name === c.name) r.name = n; });
+          subscriptions.forEach(s => { if (s.name === c.name) s.name = n; });
         }
+        c.name = n; c.phone = p; c.address = a;
+        showMsg("Grahak Updated!", "success");
+      } else {
+        if (customersData.some(c => c.name.toLowerCase() === n.toLowerCase())) return alert("Naam pehle se hai!");
+        customersData.push({ id: Date.now().toString(), name: n, phone: p, address: a });
+        showMsg("Grahak Added!", "success");
+      }
+      
+      buildIndex(); // update index
+      safeSetStorage('sitaramCusts', JSON.stringify(customersData));
+      safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords));
+      safeSetStorage('sitaramSubs', JSON.stringify(subscriptions));
+      triggerSync();
+      clearCache();
+      resetCustomerForm();
+      refreshAll();
+    }
 
-        function saveEditedEntry() {
-            let id = document.getElementById('editEntryId').value;
-            let rObj = dairyRecords.find(x => x.id === id || x.id == id); if(!rObj) return;
-            let rate = parseFloat(document.getElementById('edRate').value); if(isNaN(rate)) return alert("Rate bharein!");
-            let rawM = document.getElementById('edMatra').value;
-            let parsed = parseQuantity(rawM, rate); if(!parsed) return alert("Invalid Matra Format!");
-            let newPaymentStatus = document.getElementById('edPayment').value;
-            
-            if (rObj.payment !== newPaymentStatus) {
-                if (newPaymentStatus === 'paid') { rObj.payDate = document.getElementById('edDate').value; rObj.payMode = document.getElementById('edPayMode')?.value || 'cash'; }
-                else { rObj.payDate = null; rObj.payMode = null; }
-            }
-            rObj.date = document.getElementById('edDate').value; rObj.product = document.getElementById('edProduct').value;
-            rObj.matra = parsed.dispM; rObj.rate = rate; rObj.amount = parsed.amount; rObj.payment = newPaymentStatus;
-            
-            safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords)); triggerSync(); closeEditEntryModal(); clearCache(); refreshAll(); showMsg("Entry Update Ho Gayi!", "success");
-            if (curHistName) { let activeTab = document.querySelector('.cust-nav-tab.active').id.replace('t','').toLowerCase(); openCustTab(activeTab); }
+    function saveCustomerSilent(n) {
+      n = n.charAt(0).toUpperCase() + n.slice(1).toLowerCase();
+      if (!customersData.some(c => c.name.toLowerCase() === n.toLowerCase())) {
+        customersData.push({ id: Date.now().toString(), name: n, phone: '', address: '' });
+        safeSetStorage('sitaramCusts', JSON.stringify(customersData));
+        triggerSync();
+      }
+      return n;
+    }
+
+    function resetCustomerForm() {
+      document.getElementById('editCustId').value='';
+      document.getElementById('cName').value='';
+      document.getElementById('cPhone').value='';
+      document.getElementById('cAddress').value='';
+      document.getElementById('cancelEditBtn').style.display='none';
+    }
+
+    function renderCustList() {
+      const div = document.getElementById('customerListDiv');
+      div.innerHTML = '';
+      customersData.sort((a,b) => a.name.localeCompare(b.name)).forEach(c => {
+        div.innerHTML += `
+          <div class="khata-item">
+            <div class="khata-avatar">${safe(c.name[0].toUpperCase())}</div>
+            <div class="khata-details">
+              <b>${safe(c.name)}</b>
+              <small>${safe(c.phone)}</small>
+            </div>
+            <div class="khata-right">
+              <button class="khata-add-btn" onclick="editCust('${c.id}')">✏️</button>
+              <button class="khata-add-btn" style="background:#fee2e2; color:red;" onclick="deleteCust('${c.id}', '${safe(c.name)}')">🗑️</button>
+            </div>
+          </div>`;
+      });
+    }
+
+    function editCust(id) {
+      let c = customersData.find(x => x.id == id);
+      if(!c) return;
+      document.getElementById('editCustId').value = c.id;
+      document.getElementById('cName').value = c.name;
+      document.getElementById('cPhone').value = c.phone || '';
+      document.getElementById('cAddress').value = c.address || '';
+      document.getElementById('cancelEditBtn').style.display = 'block';
+      document.getElementById('pageCustomers').scrollTop = 0;
+    }
+
+    function deleteCust(id, name) {
+      if (confirm(`Delete ${name}? Data jayega!`)) {
+        customersData = customersData.filter(c => c.id != id);
+        subscriptions = subscriptions.filter(s => s.name !== name);
+        dairyRecords = dairyRecords.filter(r => r.name !== name);
+        buildIndex(); // update index
+        safeSetStorage('sitaramCusts', JSON.stringify(customersData));
+        safeSetStorage('sitaramSubs', JSON.stringify(subscriptions));
+        safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords));
+        triggerSync();
+        clearCache();
+        refreshAll();
+        showMsg("Deleted!", "error");
+      }
+    }
+
+    function updateDropdown() {
+      const s = document.getElementById('customerDataList');
+      s.innerHTML = '';
+      let names = new Set(dairyRecords.map(r => r.name));
+      customersData.forEach(c => names.add(c.name));
+      Array.from(names).sort().forEach(n => {
+        s.innerHTML += `<option value="${safe(n)}">`;
+      });
+    }
+
+    function isMatch(ds) {
+      let o = parseDate(ds);
+      return o && o.m === viewMonth && o.y === viewYear;
+    }
+
+    function clearCache() {
+      delete monthlyCache[`${viewMonth}-${viewYear}`];
+      chartLoaded = false; // Force chart redraw on month change
+    }
+
+    function getFilteredRecords() {
+      let k = `${viewMonth}-${viewYear}`;
+      if(monthlyCache[k]) return monthlyCache[k];
+      let d = dairyRecords.filter(r => isMatch(r.date));
+      monthlyCache[k] = d;
+      return d;
+    }
+
+    function refreshAll() {
+      displayDashboard();
+      renderHistoryList();
+      renderCustList();
+      updateDropdown();
+    }
+
+    function toggleEntryPayMethod() {
+      document.getElementById('entryPayMethodDiv').style.display = document.getElementById('payment').value === 'paid' ? 'block' : 'none';
+    }
+
+    function toggleEditPayMode() {
+      document.getElementById('edPayModeGroup').style.display = document.getElementById('edPayment').value === 'paid' ? 'block' : 'none';
+    }
+
+    function setPaymentMode(m, target = 'entry') {
+      activePaymentMode = m;
+      if (target === 'entry') {
+        document.getElementById('eBtnCash').classList.toggle('active', m==='cash');
+        document.getElementById('eBtnOnline').classList.toggle('active', m==='online');
+      } else {
+        document.getElementById('mBtnCash').classList.toggle('active', m==='cash');
+        document.getElementById('mBtnOnline').classList.toggle('active', m==='online');
+        updateVisuals('profPayMode', 'modalVisualArea', 'modalInstructionTxt', m);
+      }
+    }
+
+    function saveRecord() {
+      let n = document.getElementById('customerSelectInput').value.trim();
+      let r = parseFloat(document.getElementById('rate').value);
+      let p = document.getElementById('payment').value;
+      let dVal = document.getElementById('entryDate').value || new Date().toISOString().split('T')[0];
+      let rawM = document.getElementById('matra').value;
+      
+      if (!n || n.length < 2) return alert("Naam bharein!");
+      if(isNaN(r)) return alert("Rate bharein!");
+      
+      let parsed = parseQuantity(rawM, r);
+      if(!parsed) return alert("Invalid Matra!");
+      
+      n = saveCustomerSilent(n);
+      
+      let fPM = (!parsed.dispM.includes('🚫') && p === 'paid') ? activePaymentMode : null;
+      let fPD = fPM ? dVal : null;
+      
+      dairyRecords.push({
+        id: Date.now().toString(),
+        date: dVal,
+        name: n,
+        product: document.getElementById('product').value,
+        shift: document.getElementById('shift').value,
+        matra: parsed.dispM,
+        rate: r,
+        amount: parsed.amount,
+        payment: p,
+        payMode: fPM,
+        payDate: fPD
+      });
+      
+      buildIndex(); // update index
+      safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords));
+      triggerSync();
+      
+      document.getElementById('matra').value = '';
+      document.getElementById('customerSelectInput').value = '';
+      let dObj = parseDate(dVal);
+      viewMonth = dObj.m;
+      viewYear = dObj.y;
+      clearCache();
+      updateMonthDisplay();
+      refreshAll();
+      showMsg("Saved!", "success");
+      switchTab(0);
+    }
+    
+    function openEditEntry(id) {
+      let r = dairyRecords.find(x => x.id == id);
+      if (!r) return;
+      document.getElementById('editEntryId').value = r.id;
+      let d = parseDate(r.date);
+      document.getElementById('edDate').value = `${d.y}-${String(d.m+1).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`;
+      document.getElementById('edProduct').value = r.product;
+      document.getElementById('edMatra').value = r.matra.includes('🚫') ? 'gap' : r.matra;
+      document.getElementById('edRate').value = r.rate;
+      document.getElementById('edPayment').value = r.payment;
+      
+      if(r.payment === 'paid') {
+        document.getElementById('edPayModeGroup').style.display='block';
+        document.getElementById('edPayMode').value=r.payMode||'cash';
+      } else {
+        document.getElementById('edPayModeGroup').style.display='none';
+      }
+      document.getElementById('editEntryModal').style.display = 'flex';
+    }
+
+    function closeEditEntryModal() {
+      document.getElementById('editEntryModal').style.display = 'none';
+    }
+
+    function deleteEditedEntry() {
+      if (confirm("Delete entry?")) {
+        let id = document.getElementById('editEntryId').value;
+        dairyRecords = dairyRecords.filter(r => r.id != id);
+        buildIndex(); // update index
+        safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords));
+        triggerSync();
+        closeEditEntryModal();
+        clearCache();
+        refreshAll();
+        showMsg("Deleted!", "error");
+        if(curHistName) {
+          openCustTab(document.querySelector('.cust-nav-tab.active').id.replace('t','').toLowerCase());
         }
+      }
+    }
 
-        function prevMonth() { viewMonth--; if (viewMonth < 0) { viewMonth = 11; viewYear--; } clearCache(); updateMonthDisplay(); refreshAll(); }
-        function nextMonth() { viewMonth++; if (viewMonth > 11) { viewMonth = 0; viewYear++; } clearCache(); updateMonthDisplay(); refreshAll(); }
-        function updateMonthDisplay() { const mN = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]; document.getElementById('currentMonthText').innerText = `${mN[viewMonth]} ${viewYear}`; }
+    function saveEditedEntry() {
+      let r = dairyRecords.find(x => x.id == document.getElementById('editEntryId').value);
+      if(!r) return;
+      let rate = parseFloat(document.getElementById('edRate').value);
+      let parsed = parseQuantity(document.getElementById('edMatra').value, rate);
+      if(!parsed) return alert("Invalid Matra");
+      
+      r.payment = document.getElementById('edPayment').value;
+      r.date = document.getElementById('edDate').value;
+      r.product = document.getElementById('edProduct').value;
+      r.matra = parsed.dispM;
+      r.rate = rate;
+      r.amount = parsed.amount;
+      
+      if(r.payment === 'paid') {
+        r.payDate = r.date;
+        r.payMode = document.getElementById('edPayMode').value;
+      } else {
+        r.payDate=null;
+        r.payMode=null;
+      }
+      
+      buildIndex(); // update index
+      safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords));
+      triggerSync();
+      closeEditEntryModal();
+      clearCache();
+      refreshAll();
+      showMsg("Updated!", "success");
+      if(curHistName) {
+        openCustTab(document.querySelector('.cust-nav-tab.active').id.replace('t','').toLowerCase());
+      }
+    }
 
-        function renderCharts() {
-            try {
-                if (typeof Chart === 'undefined') return;
-                let ctx = document.getElementById('milkChart'); if (!ctx) return;
-                let daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-                let labels = [], milkData = [];
-                for (let i = 1; i <= daysInMonth; i++) { labels.push(i); milkData.push(0); }
-                
-                getFilteredRecords().forEach(r => {
-                    if (!r.matra.includes('🚫')) {
-                        let dObj = parseDate(r.date); let numStr = r.matra.match(/\d*\.?\d+/);
-                        if (numStr) {
-                            let v = parseFloat(numStr[0]);
-                            if (r.matra.toLowerCase().includes('ml') || r.matra.toLowerCase().includes('g')) v /= 1000;
-                            if (!r.product || r.product === 'Doodh') { if (dObj && dObj.d >= 1 && dObj.d <= daysInMonth) milkData[dObj.d - 1] += v; }
-                        }
-                    }
-                });
-                
-                if (milkChartInstance) { milkChartInstance.destroy(); milkChartInstance = null; }
-                milkChartInstance = new Chart(ctx, {
-                    type: 'bar', data: { labels: labels, datasets: [{ label: 'Daily Milk (Liters)', data: milkData, backgroundColor: 'rgba(11, 61, 145, 0.8)', borderRadius: 8 }] },
-                    options: { responsive: true, plugins: { legend: { labels: { color: document.body.classList.contains('dark-mode') ? '#fff' : '#333' } } },
-                        scales: { y: { beginAtZero: true, ticks: { color: document.body.classList.contains('dark-mode') ? '#ccc' : '#666' } }, x: { ticks: { color: document.body.classList.contains('dark-mode') ? '#ccc' : '#666' } } } }
-                });
-            } catch (e) {}
+    function displayDashboard() {
+      let milk=0, ghee=0, mahi=0, paid=0, due=0, total=0;
+      getFilteredRecords().forEach(r => {
+        if (!r.matra.includes('🚫')) {
+          total += r.amount;
+          if(r.payment==='paid') paid+=r.amount; else due+=r.amount;
+          let nStr = r.matra.match(/\d*\.?\d+/);
+          if(nStr) {
+            let v = parseFloat(nStr[0]);
+            if(r.matra.includes('ml')||r.matra.includes('g')) v/=1000;
+            if(r.product==='Ghee') ghee+=v; else if(r.product==='Mahi') mahi+=v; else milk+=v;
+          }
         }
+      });
+      document.getElementById('dashDoodh').innerText = milk.toFixed(1) + ' L';
+      document.getElementById('dashGhee').innerText = ghee.toFixed(1) + ' kg';
+      document.getElementById('dashMahi').innerText = mahi.toFixed(1) + ' L';
+      document.getElementById('dashPaid').innerText = 'Rs ' + paid;
+      document.getElementById('dashUnpaid').innerText = 'Rs ' + due;
+      document.getElementById('dashTotalBill').innerText = 'Rs ' + total;
+      document.getElementById('dashOutstanding').innerText = 'Rs ' + due;
+      filterHomeList();
+      
+      // 🔥 FIX: Chart Memory Optimization
+      if (!chartLoaded) {
+         renderCharts();
+         chartLoaded = true;
+      }
+    }
 
-        function displayDashboard() {
-            let milk = 0, ghee = 0, mahi = 0, paid = 0, due = 0, total = 0;
-            getFilteredRecords().forEach(r => {
-                if (!r.matra.includes('🚫')) {
-                    total += r.amount;
-                    if (r.payment === 'paid') paid += r.amount; else due += r.amount;
-                    let numStr = r.matra.match(/\d*\.?\d+/);
-                    if (numStr) {
-                        let v = parseFloat(numStr[0]);
-                        if (r.matra.toLowerCase().includes('ml') || r.matra.toLowerCase().includes('g')) v /= 1000;
-                        if (!r.product || r.product === 'Doodh') milk += v;
-                        else if (r.product === 'Ghee') ghee += v;
-                        else mahi += v;
-                    }
-                }
-            });
-            document.getElementById('dashDoodh').innerText = milk.toFixed(1) + ' L'; document.getElementById('dashGhee').innerText = ghee.toFixed(1) + ' kg';
-            document.getElementById('dashMahi').innerText = mahi.toFixed(1) + ' L'; document.getElementById('dashPaid').innerText = 'Rs ' + paid;
-            document.getElementById('dashUnpaid').innerText = 'Rs ' + due; document.getElementById('dashTotalBill').innerText = 'Rs ' + total;
-            document.getElementById('dashOutstanding').innerText = 'Rs ' + due;
-            filterHomeList(); renderCharts();
+    function debounceFilterHomeList() {
+      clearTimeout(searchTimeoutHome);
+      searchTimeoutHome = setTimeout(filterHomeList, 300);
+    }
+
+    function filterHomeList() {
+      const q = document.getElementById('searchInput').value.toLowerCase();
+      const hL = document.getElementById('homeRecentList');
+      hL.innerHTML = '';
+      let mRecs = getFilteredRecords();
+      let fil = [];
+      for (let i = mRecs.length - 1; i >= 0; i--) {
+        if (mRecs[i].name.toLowerCase().includes(q)) {
+          fil.push(mRecs[i]);
+          if(fil.length>=10) break;
         }
+      }
+      if (fil.length === 0) return hL.innerHTML = '<p style="text-align:center;">No entry</p>';
+      
+      fil.forEach(r => {
+        const li = document.createElement('li');
+        li.className = 'khata-item';
+        let iconBg = r.shift === 'Subah' ? '#f59e0b' : '#3b82f6';
+        let payT = r.payment === 'paid' ? `<span class="pay-status status-paid">Paid ${r.payMode==='online'?'📱':'💵'}</span>` : `<span class="pay-status status-due">Due ❌</span>`;
+        if(r.matra.includes('🚫')) payT = `<span class="pay-status status-paid">GAP 🚫</span>`;
+        
+        li.innerHTML = `
+          <div class="khata-avatar" style="background:${iconBg}; font-size:1rem;">${r.shift[0]}</div>
+          <div class="khata-details">
+            <b>${safe(r.name)}</b>
+            <small>${parseDate(r.date).d}/${parseDate(r.date).m+1} | ${r.matra} @ Rs ${r.rate}</small>
+            <div style="margin-top:3px;">${payT}</div>
+          </div>
+          <div class="khata-right" style="flex-direction:column; align-items:flex-end;">
+            <div class="entry-amount ${r.payment==='paid'?'':'unpaid'}">Rs ${r.amount}</div>
+            <button onclick="openEditEntry('${r.id}')" style="background:var(--light-bg); border:1px solid var(--border-color); border-radius:5px;">✏️ Edit</button>
+          </div>`;
+        hL.appendChild(li);
+      });
+    }
 
-        function debounceFilterHomeList() { clearTimeout(searchTimeout); searchTimeout = setTimeout(filterHomeList, 300); }
+    function debounceRenderHistoryList() {
+      clearTimeout(histSearchTimeout);
+      histSearchTimeout = setTimeout(renderHistoryList, 300);
+    }
 
-        function filterHomeList() {
-            const q = document.getElementById('searchInput').value.toLowerCase();
-            const hL = document.getElementById('homeRecentList'); hL.innerHTML = '';
-            let mRecs = getFilteredRecords(), fil = [];
-            for (let i = mRecs.length - 1; i >= 0; i--) {
-                if (mRecs[i].name.toLowerCase().includes(q)) { fil.push(mRecs[i]); if(fil.length >= 10) break; }
-            }
-            if (fil.length === 0) hL.innerHTML = '<p style="text-align:center; color:#888;">No entry found</p>';
-            fil.forEach(r => hL.appendChild(getItem(r, false)));
+    function renderHistoryList() {
+      const q = document.getElementById('historySearch').value.toLowerCase();
+      const div = document.getElementById('historyCustList');
+      div.innerHTML = '';
+      
+      let names = new Set(dairyRecords.map(r => r.name));
+      customersData.forEach(c => names.add(c.name));
+      let fil = Array.from(names).filter(n => n.toLowerCase().includes(q)).sort();
+      let userTotals = {};
+      
+      dairyRecords.forEach(r => {
+        if(r.payment!=='paid' && !r.matra.includes('🚫')) {
+          userTotals[r.name] = (userTotals[r.name] || 0) + r.amount;
         }
+      });
+      
+      fil.forEach(n => {
+        let d = userTotals[n] || 0;
+        let dueText = d > 0 ? `<span class="khata-due">Due: Rs ${d}</span>` : `<span style="color:#10b981; font-weight:bold;">Clear ✅</span>`;
+        
+        div.innerHTML += `
+          <div class="khata-item" onclick="openCustProfile('${safe(n)}')">
+            <div class="khata-avatar">${safe(n[0].toUpperCase())}</div>
+            <div class="khata-details">
+              <b>${safe(n)}</b>
+              <small>Tap to view details</small>
+            </div>
+            <div class="khata-right">
+              ${dueText}
+              <button class="khata-add-btn" onclick="event.stopPropagation(); switchTab(1); document.getElementById('customerSelectInput').value='${safe(n)}';">+ Add</button>
+            </div>
+          </div>`;
+      });
+    }
 
-        function getItem(r, showEditBtn) {
-            const li = document.createElement('li'); li.className = 'khata-item';
-            let icon = (r.shift === 'Subah') ? 'shift-morning' : 'shift-evening';
-            let shiftDisp = r.shift ? r.shift[0] : 'S';
-            let payIcon = r.payMode === 'online' ? '📱' : '💵';
-            let payModeText = r.payMode === 'online' ? 'Online' : 'Cash';
-            let payT = '';
-            if (r.payment === 'paid') {
-                let pdStr = ''; if (r.payDate) { let pdObj = parseDate(r.payDate); if (pdObj) pdStr = ` (${String(pdObj.d).padStart(2,'0')}/${String(pdObj.m+1).padStart(2,'0')})`; }
-                payT = `<span class="pay-status status-paid">Paid ${payModeText} ${payIcon}${pdStr}</span>`;
-            } else { payT = `<span class="pay-status status-due">Due ❌</span>`; }
-            
-            let productEmoji = '🥛'; if (r.product === 'Ghee') productEmoji = '🧈'; else if (r.product === 'Mahi') productEmoji = '🥤';
-            if (r.matra.includes('🚫')) { payT = `<span class="pay-status status-paid">GAP 🚫</span>`; productEmoji = ''; }
-            
-            let dObj = parseDate(r.date); let dDisp = dObj ? `${String(dObj.d).padStart(2,'0')}/${String(dObj.m+1).padStart(2,'0')}` : r.date;
-            let actionBtn = showEditBtn ? `<br><button onclick="openEditEntry('${r.id}')" style="background:var(--light-bg); border:1px solid var(--border-color); color:var(--text-main); padding:3px 8px; border-radius:5px; margin-top:5px; cursor:pointer;">✏️ Edit</button>` : '';
-            
-            li.innerHTML = `
-                <div class="shift-icon ${icon}">${shiftDisp}</div>
-                <div style="flex:1;"><b>${safe(r.name)}</b> <br> ${payT}<br> <small>${dDisp} | ${productEmoji} ${r.matra} @ Rs ${r.rate}</small></div>
-                <div class="entry-amount ${r.payment==='paid'?'':'unpaid'}"> Rs ${r.amount}${actionBtn} </div>`;
-            return li;
+    function openCustProfile(n) {
+      curHistName = n;
+      custViewMonth = viewMonth;
+      custViewYear = viewYear;
+      document.getElementById('historyListView').style.display='none';
+      document.getElementById('historyDetailView').style.display='block';
+      document.getElementById('histCustName').innerText = "👤 " + safe(n);
+      openCustTab('detail');
+    }
+
+    function changeCustMonth(dir) {
+      custViewMonth += dir;
+      if(custViewMonth < 0) {
+        custViewMonth = 11;
+        custViewYear--;
+      } else if(custViewMonth > 11) {
+        custViewMonth = 0;
+        custViewYear++;
+      }
+      openCustTab('calendar');
+    }
+    
+    function openCustTab(t) {
+      document.querySelectorAll('.cust-nav-tab').forEach(x => x.classList.remove('active'));
+      document.getElementById({detail:'tDet', calendar:'tCal', pay:'tPay'}[t]).classList.add('active');
+      const cont = document.getElementById('custTabContent');
+      cont.innerHTML = '';
+      
+      if (t === 'detail') {
+        let recs = getFilteredRecords().filter(r => r.name === curHistName);
+        if(!recs.length) {
+          cont.innerHTML = '<p style="text-align:center; padding:20px;">No Entry</p>';
+        } else {
+          let ul = document.createElement('ul');
+          ul.className = 'khata-list';
+          [...recs].reverse().forEach(r => {
+             let iconBg = r.shift === 'Subah' ? '#f59e0b' : '#3b82f6';
+             let payT = r.payment === 'paid' ? `<span class="pay-status status-paid">Paid ${r.payMode==='online'?'📱':'💵'}</span>` : `<span class="pay-status status-due">Due ❌</span>`;
+             if(r.matra.includes('🚫')) payT = `<span class="pay-status status-paid">GAP 🚫</span>`;
+             
+             ul.innerHTML += `
+               <li class="khata-item">
+                 <div class="khata-avatar" style="background:${iconBg}; font-size:1rem;">${r.shift[0]}</div>
+                 <div class="khata-details">
+                   <b>${safe(r.name)}</b>
+                   <small>${parseDate(r.date).d}/${parseDate(r.date).m+1} | ${r.matra} @ Rs ${r.rate}</small>
+                   <div style="margin-top:3px;">${payT}</div>
+                 </div>
+                 <div class="khata-right" style="flex-direction:column; align-items:flex-end;">
+                   <div class="entry-amount ${r.payment==='paid'?'':'unpaid'}">Rs ${r.amount}</div>
+                   <button onclick="openEditEntry('${r.id}')" style="background:var(--light-bg); border:1px solid var(--border-color); border-radius:5px;">✏️ Edit</button>
+                 </div>
+               </li>`;
+          });
+          cont.appendChild(ul);
         }
-
-        function openHistory() { switchTab(2); document.getElementById('historyDetailView').style.display = 'none'; document.getElementById('historyListView').style.display = 'block'; renderHistoryList(); }
-        function backToHistoryList() { curHistName = ''; document.getElementById('historyDetailView').style.display = 'none'; document.getElementById('historyListView').style.display = 'block'; renderHistoryList(); }
-
-        let histSearchTimeout;
-        function debounceRenderHistoryList() { clearTimeout(histSearchTimeout); histSearchTimeout = setTimeout(renderHistoryList, 300); }
-
-        function renderHistoryList() {
-            const q = document.getElementById('historySearch').value.toLowerCase();
-            const div = document.getElementById('historyCustList'); div.innerHTML = '';
-            let names = new Set(dairyRecords.map(r => r.name)); customersData.forEach(c => names.add(c.name));
-            let fil = Array.from(names).filter(n => n.toLowerCase().includes(q)).sort();
-            let monthRecords = getFilteredRecords(); let userTotals = {};
-            monthRecords.forEach(r => { if (r.payment !== 'paid' && !r.matra.includes('🚫')) { userTotals[r.name] = (userTotals[r.name] || 0) + r.amount; } });
-            
-            fil.forEach(n => {
-                let d = userTotals[n] || 0; let cI = customersData.find(c => c.name === n);
-                let phoneHTML = cI && cI.phone ? `<a href="tel:${cI.phone}" style="font-size:1.5rem; text-decoration:none;" onclick="event.stopPropagation()">📞</a>` : '';
-                let dueHTML = d > 0 ? `<small style="color:var(--danger-red)">Due: Rs ${d}</small>` : `<small style="color:var(--success-green)">Clear ✅</small>`;
-                div.innerHTML += `
-                <div class="khata-item" style="cursor:pointer;" onclick="openCustProfile('${safe(n)}')">
-                    <div class="shift-icon" style="background:#e0e7ff; color:var(--primary-blue); font-weight:bold;">${safe(n[0].toUpperCase())}</div>
-                    <div style="flex:1;"><b>${safe(n)}</b><br>${dueHTML}</div>
-                    <div>${phoneHTML}&nbsp;&nbsp;<span style="color:var(--primary-blue); font-weight:bold;">&gt;</span></div>
-                </div>`;
-            });
+      } else if (t === 'calendar') {
+        cont.innerHTML = `
+          <div class="month-selector" style="margin-bottom:15px; background:var(--light-bg); padding:5px; border-radius:8px;">
+            <span class="month-btn" onclick="changeCustMonth(-1)">&lt;</span>
+            <span class="month-text">${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][custViewMonth]} ${custViewYear}</span>
+            <span class="month-btn" onclick="changeCustMonth(1)">&gt;</span>
+          </div>` + getCal(curHistName);
+      } else if (t === 'pay') {
+        let tBill=0, tPaid=0, tDue=0, totalAllTimeDue=0;
+        getFilteredRecords().filter(r=>r.name===curHistName && !r.matra.includes('🚫')).forEach(r => {
+          tBill+=r.amount;
+          if(r.payment==='paid') tPaid+=r.amount;
+        });
+        dairyRecords.filter(r=>r.name===curHistName && r.payment!=='paid' && !r.matra.includes('🚫')).forEach(r => totalAllTimeDue+=r.amount);
+        
+        let sumH = `
+          <div style="background:var(--light-bg); padding:15px; border-radius:10px; display:flex; justify-content:space-around; text-align:center; margin-bottom:15px;">
+            <div style="line-height:1.4"><small>Month Bill</small><br><b>Rs ${tBill}</b></div>
+            <div style="line-height:1.4"><small>Month Recv</small><br><b style="color:var(--success-green)">Rs ${tPaid}</b></div>
+            <div style="line-height:1.4"><small>Total Due</small><br><b style="color:var(--danger-red)">Rs ${totalAllTimeDue}</b></div>
+          </div>`;
+          
+        if (totalAllTimeDue <= 0) {
+          cont.innerHTML = sumH + '<div style="text-align:center;"><div style="font-size:4rem;">🎉</div><h3 style="color:var(--success-green);">Sab Clear Hai!</h3></div>';
+        } else {
+          cont.innerHTML = sumH + `
+            <div style="text-align:center;">
+              <h2>Pay: Rs ${totalAllTimeDue}</h2>
+              <div class="pay-method-group">
+                <button class="pay-method-btn active" id="pBtnO" onclick="setPaymentMode('online', 'prof')">📱 Online</button>
+                <button class="pay-method-btn" id="pBtnC" onclick="setPaymentMode('cash', 'prof')">💵 Cash</button>
+              </div>
+              <input type="hidden" id="profPayMode" value="online">
+              <div class="visual-area" id="profVisualArea"></div>
+              <p id="profInstructionTxt" style="font-weight:bold;"></p>
+              <button class="btn-add-entry" style="background:var(--success-green);" onclick="confirmPayment('prof')">✅ Confirm Payment</button>
+            </div>`;
+          setPaymentMode('online', 'prof');
         }
+      }
+    }
 
-        function openCustProfile(n) {
-            curHistName = n; custViewMonth = viewMonth; custViewYear = viewYear;
-            document.getElementById('historyListView').style.display = 'none'; document.getElementById('historyDetailView').style.display = 'block';
-            document.getElementById('histCustName').innerText = "👤 " + safe(n); openCustTab('detail');
+    // Modal Payment logic
+    function openPayModal() {
+      document.getElementById('payModal').style.display='flex';
+      document.getElementById('modalStep1').style.display='block';
+      document.getElementById('modalStep2').style.display='none';
+      renderPayModalList();
+    }
+
+    function closePayModal() {
+      document.getElementById('payModal').style.display='none';
+    }
+
+    function renderPayModalList() {
+      const q = (document.getElementById('paySearchInput').value || '').toLowerCase();
+      const ul = document.getElementById('payCustomerList');
+      ul.innerHTML = '';
+      let udhaar = {};
+      dairyRecords.forEach(r => {
+        if(r.payment!=='paid' && !r.matra.includes('🚫')) {
+          udhaar[r.name] = (udhaar[r.name]||0) + r.amount;
         }
+      });
+      
+      let ent = Object.entries(udhaar).filter(([n,a]) => n.toLowerCase().includes(q) && a>0);
+      if(!ent.length) return ul.innerHTML = '<p style="text-align:center; padding:20px; color:var(--success-green); font-weight:bold;">No Dues! Sab Clear Hai.</p>';
+      
+      ent.forEach(([n,a]) => {
+        ul.innerHTML += `
+          <li class="khata-item" onclick="showQR('${safe(n)}', ${a})">
+            <div class="khata-avatar" style="background:#fee2e2; color:#dc2626;">${safe(n[0].toUpperCase())}</div>
+            <div class="khata-details"><b>${safe(n)}</b></div>
+            <div class="khata-right"><b style="color:var(--danger-red);">Rs ${a} ></b></div>
+          </li>`;
+      });
+    }
 
-        function changeCustMonth(dir) {
-            custViewMonth += dir;
-            if(custViewMonth < 0) { custViewMonth = 11; custViewYear--; }
-            else if(custViewMonth > 11) { custViewMonth = 0; custViewYear++; }
-            openCustTab('calendar');
+    function showQR(n, a) {
+      curPayName=n;
+      document.getElementById('modalStep1').style.display='none';
+      document.getElementById('modalStep2').style.display='block';
+      document.getElementById('qrCustomerName').innerText=n;
+      document.getElementById('qrAmount').innerText='Rs '+a;
+      setPaymentMode('online','modal');
+    }
+
+    function backToPayList() {
+      document.getElementById('modalStep1').style.display='block';
+      document.getElementById('modalStep2').style.display='none';
+    }
+
+    function updateVisuals(modeInputId, visualAreaId, instructionTxtId, mode) {
+      const vArea = document.getElementById(visualAreaId);
+      const instr = document.getElementById(instructionTxtId);
+      if (mode === 'online') {
+        vArea.innerHTML = savedQR ? `<img src="${savedQR}" style="max-width:200px; max-height:200px; border:2px solid var(--primary-blue); border-radius:10px;">` : `<div style="width:160px; height:160px; border:5px solid black; background:repeating-linear-gradient(45deg, #000, #000 10px, #fff 10px, #fff 20px); display:flex; align-items:center; justify-content:center;"><div style="background:white; padding:10px; font-weight:bold;">DUMMY QR</div></div>`;
+        instr.innerText = "Grahak ko QR Code dikhayein.";
+      } else {
+        vArea.innerHTML = `<div style="font-size:5rem; background:#dcfce7; width:130px; height:130px; border-radius:100px; display:flex; align-items:center; justify-content:center;">💵</div>`;
+        instr.innerText = "Cash milne par confirm dabayein.";
+      }
+    }
+
+    function confirmPayment(src) {
+      let n = src==='modal' ? curPayName : curHistName;
+      if(!confirm(`Kya ${n} se payment mil gaya?`)) return;
+      let todayStr = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
+      dairyRecords.forEach(r => {
+        if(r.name===n && r.payment!=='paid' && !r.matra.includes('🚫')) {
+          r.payment='paid';
+          r.payMode=activePaymentMode;
+          r.payDate=todayStr;
         }
+      });
+      safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords));
+      triggerSync();
+      if(src==='modal') closePayModal();
+      clearCache();
+      refreshAll();
+      showMsg("Payment Received!", "success");
+    }
 
-        function openCustTab(t) {
-            document.querySelectorAll('.cust-nav-tab').forEach(x => x.classList.remove('active'));
-            let idMap = { 'detail': 'tDet', 'calendar': 'tCal', 'pay': 'tPay' };
-            document.getElementById(idMap[t]).classList.add('active');
-            const cont = document.getElementById('custTabContent'); cont.innerHTML = '';
-            
-            if (t === 'detail') {
-                let recs = getFilteredRecords().filter(r => r.name === curHistName);
-                if (!recs.length) cont.innerHTML = '<p style="text-align:center; color:#888; padding: 20px;">Is mahine koi entry nahi.</p>';
-                else { let ul = document.createElement('ul'); ul.className = 'khata-list'; [...recs].reverse().forEach(r => ul.appendChild(getItem(r, true))); cont.appendChild(ul); }
-            } else if (t === 'calendar') {
-                const mN = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-                let navHtml = `<div class="month-selector" style="margin-bottom: 15px; background: var(--light-bg); padding: 5px; border-radius: 8px;"><span class="month-btn" onclick="changeCustMonth(-1)">&lt;</span><span class="month-text" style="font-size: 0.95rem;">${mN[custViewMonth]} ${custViewYear}</span><span class="month-btn" onclick="changeCustMonth(1)">&gt;</span></div>`;
-                cont.innerHTML = navHtml + getCal(curHistName);
-            } else if (t === 'pay') {
-                let tBill = 0, tPaid = 0, tDue = 0;
-                getFilteredRecords().forEach(r => {
-                    if (r.name === curHistName && !r.matra.includes('🚫')) {
-                        tBill += r.amount; if (r.payment === 'paid') tPaid += r.amount; else tDue += r.amount;
-                    }
-                });
-                let sumH = `<div style="background:var(--light-bg); padding:15px; border-radius:10px; display:flex; justify-content:space-around; text-align:center; margin-bottom:15px; border:1px solid var(--border-color);"><div><small>Total Bill</small><br><b>Rs ${tBill}</b></div><div><small>Received</small><br><b style="color:var(--success-green)">Rs ${tPaid}</b></div><div><small>Balance Due</small><br><b style="color:var(--danger-red)">Rs ${tDue}</b></div></div>`;
-                if (tDue <= 0) { cont.innerHTML = sumH + '<div style="text-align:center; padding:20px;"><div style="font-size:4rem;">🎉</div><h3 style="color:var(--success-green);">Sab Clear Hai!</h3></div>'; }
-                else {
-                    cont.innerHTML = sumH + `<div style="text-align:center;"><h2>Pay: Rs ${tDue}</h2><div class="pay-method-group" style="justify-content:center;"><button class="pay-btn active" id="pBtnO" onclick="setProfMode('online')">📱 Online</button><button class="pay-btn" id="pBtnC" onclick="setProfMode('cash')">💵 Cash</button></div><input type="hidden" id="profPayMode" value="online"><div class="visual-area" id="profVisualArea"></div><p id="profInstructionTxt" style="font-weight:bold; color:var(--text-muted);"></p><button class="btn-add-entry" style="background:var(--success-green);" onclick="confirmPayment('prof')">✅ Confirm Payment</button></div>`;
-                    setProfMode('online');
-                }
-            }
+    function populateBillArea() {
+      let mRecs = getFilteredRecords().filter(r => r.name === curHistName);
+      if (!mRecs.length) return false;
+      let tMilk=0, cBill=0, gaps=0;
+      let table = document.getElementById("billTable");
+      table.innerHTML = "";
+      
+      mRecs.forEach(r => {
+        if(r.matra.includes('🚫')) gaps++; else {
+          cBill += r.amount;
+          let pd = parseDate(r.date);
+          let dDate = pd ? `${pd.d}/${pd.m+1}/${pd.y}` : r.date;
+          table.innerHTML += `<tr><td style="border: 1px solid #ddd; padding:8px;">${dDate}</td><td style="border: 1px solid #ddd; padding:8px;">${r.product}</td><td style="border: 1px solid #ddd; padding:8px;">${r.matra}</td><td style="border: 1px solid #ddd; padding:8px; text-align:right;">${r.amount}</td></tr>`;
+          let nStr = r.matra.match(/\d*\.?\d+/);
+          if(nStr) {
+            let v = parseFloat(nStr[0]);
+            if(r.matra.includes('ml')||r.matra.includes('g')) v/=1000;
+            if(r.product==='Doodh') tMilk+=v;
+          }
         }
+      });
+      
+      let tAllDue=0;
+      dairyRecords.forEach(r=>{
+        if(r.name===curHistName&&r.payment!=='paid'&&!r.matra.includes('🚫')) tAllDue+=r.amount;
+      });
+      
+      document.getElementById("bName").innerText = curHistName;
+      document.getElementById("bMonth").innerText = document.getElementById("currentMonthText").innerText;
+      document.getElementById("bTotal").innerHTML = `<p>Total Gaps: <b>${gaps} Days</b></p><p>Total Milk: <b>${tMilk.toFixed(1)} L</b></p><p>This Month Bill: <b>Rs ${cBill}</b></p><h2 style="color:#ef4444;">Total Due (Incl. Old): Rs ${tAllDue}</h2>`;
+      return true;
+    }
 
-        function populateBillArea() {
-            let mRecs = getFilteredRecords().filter(r => r.name === curHistName); if (mRecs.length === 0) return false;
-            let tMilk = 0, totalAmt = 0, paidAmt = 0, dueAmt = 0, gaps = 0;
-            let table = document.getElementById("billTable"); table.innerHTML = "";
-            mRecs.forEach(r => {
-                if (r.matra.includes('🚫')) { gaps++; } else {
-                    totalAmt += r.amount; if (r.payment === 'paid') paidAmt += r.amount; else dueAmt += r.amount;
-                    let pd = parseDate(r.date); let displayDate = pd ? `${String(pd.d).padStart(2,'0')}/${String(pd.m+1).padStart(2,'0')}/${pd.y}` : r.date;
-                    table.innerHTML += `<tr><td style="text-align: left; padding: 10px; border: 1px solid #ddd;">${displayDate}</td><td style="text-align: left; padding: 10px; border: 1px solid #ddd;">${r.product}</td><td style="text-align: left; padding: 10px; border: 1px solid #ddd;">${r.matra}</td><td style="text-align: right; padding: 10px; border: 1px solid #ddd;">${r.amount}</td></tr>`;
-                    let numStr = r.matra.match(/\d*\.?\d+/);
-                    if (numStr) { let v = parseFloat(numStr[0]); if (r.matra.toLowerCase().includes('ml') || r.matra.toLowerCase().includes('g')) v /= 1000; if (!r.product || r.product === 'Doodh') tMilk += v; }
-                }
-            });
-            document.getElementById("bName").innerText = curHistName; document.getElementById("bMonth").innerText = document.getElementById("currentMonthText").innerText;
-            document.getElementById("bTotal").innerHTML = `<p style="margin: 5px 0;">Total Gaps: <b>${gaps} Days</b></p><p style="margin: 5px 0;">Total Milk: <b>${tMilk.toFixed(1)} L</b></p><p style="margin: 5px 0;">Total Bill: <b>Rs ${totalAmt}</b></p><p style="margin: 5px 0; color: green;">Paid: <b>Rs ${paidAmt}</b></p><h2 style="margin: 10px 0 0 0; color: #ef4444;">Final Due: Rs ${dueAmt}</h2>`;
-            return true;
+    function shareWhatsAppBill() {
+      let mRecs = getFilteredRecords().filter(r => r.name === curHistName);
+      if (!mRecs.length) return alert("No data");
+      let tMilk=0, cBill=0, gaps=0;
+      
+      mRecs.forEach(r => {
+        if(r.matra.includes('🚫')) gaps++; else {
+          cBill+=r.amount;
+          let nStr=r.matra.match(/\d*\.?\d+/);
+          if(nStr) {
+            let v=parseFloat(nStr[0]);
+            if(r.matra.includes('ml')) v/=1000;
+            if(r.product==='Doodh') tMilk+=v;
+          }
         }
+      });
+      
+      let tDue=0;
+      dairyRecords.forEach(r=>{
+        if(r.name===curHistName&&r.payment!=='paid'&&!r.matra.includes('🚫')) tDue+=r.amount;
+      });
+      
+      let msg = `*Sitaram Dairy*\nCustomer: ${curHistName}\nMonth: ${document.getElementById('currentMonthText').innerText}\nGap: ${gaps} Din\nMilk: ${tMilk.toFixed(1)} L\nMonth Bill: Rs ${cBill}\n*Total Due: Rs ${tDue}*\nPlease pay your bill. 🙏`;
+      let c = customersData.find(x => x.name === curHistName);
+      let p = c&&c.phone?c.phone.replace(/[^\d]/g,''):'';
+      let u = (p.length>=10)?`https://wa.me/91${p.slice(-10)}?text=${encodeURIComponent(msg)}`:`https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`;
+      window.open(u, '_blank');
+    }
 
-        function shareWhatsAppBill() {
-            let mRecs = getFilteredRecords().filter(r => r.name === curHistName); if (mRecs.length === 0) return alert("Is mahine bill share karne ke liye data nahi hai.");
-            let tMilk = 0, totalAmt = 0, tPaid = 0, tDue = 0, gaps = 0;
-            mRecs.forEach(r => {
-                if (r.matra.includes('🚫')) gaps++; else {
-                    totalAmt += r.amount; let numStr = r.matra.match(/\d*\.?\d+/);
-                    if (numStr) { let v = parseFloat(numStr[0]); if (r.matra.toLowerCase().includes('ml') || r.matra.toLowerCase().includes('g')) v /= 1000; if (!r.product || r.product === 'Doodh') tMilk += v; }
-                }
-            });
-            mRecs.forEach(r => { if (!r.matra.includes('🚫')) { if (r.payment === 'paid') tPaid += r.amount; else tDue += r.amount; } });
-            let monthName = document.getElementById('currentMonthText').innerText;
-            let msg = `*Sitaram Dairy*\n-----------------------\n*Customer:* ${curHistName}\n*Month:* ${monthName}\n*Total Gap:* ${gaps} Din 🚫\n*Total Milk:* ${tMilk.toFixed(1)} L\n*Total Bill:* Rs ${totalAmt}\n*Paid:* Rs ${tPaid}\n*Due Amount:* Rs ${tDue}\n-----------------------\nKripya apna bill jama karein. 🙏`;
-            let custObj = customersData.find(c => c.name === curHistName); let phoneStr = custObj && custObj.phone ? custObj.phone.replace(/[^\d]/g, '') : '';
-            let waUrl = '';
-            if (phoneStr.length >= 10 && phoneStr.length <= 12) { if(phoneStr.length === 10) phoneStr = '91' + phoneStr; waUrl = `https://wa.me/${phoneStr}?text=${encodeURIComponent(msg)}`; }
-            else { waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`; }
-            window.open(waUrl, '_blank') || window.location.replace(waUrl);
+    async function shareBillImage() {
+      if(!populateBillArea()) return alert("No Data");
+      let el=document.getElementById("billArea");
+      el.style.opacity='1';
+      el.style.zIndex='100';
+      showMsg("Generating...", "success");
+      try {
+        const canvas = await html2canvas(el, { scale: 2 });
+        el.style.opacity='0';
+        el.style.zIndex='-9999';
+        canvas.toBlob(async(b)=>{
+          const f = new File([b], `Bill_${curHistName}.jpg`, { type: 'image/jpeg' });
+          if(navigator.canShare && navigator.canShare({files:[f]})) {
+            await navigator.share({files:[f], title:'Bill'});
+          } else {
+            showBillImageModal();
+          }
+        }, 'image/jpeg');
+      } catch(e) {
+        el.style.opacity='0';
+        el.style.zIndex='-9999';
+      }
+    }
+    
+    function showBillImageModal() {
+      if(!populateBillArea()) return;
+      let el=document.getElementById("billArea");
+      el.style.opacity='1';
+      el.style.zIndex='100';
+      showMsg("Loading...", "success");
+      html2canvas(el, {scale:2}).then(c=>{
+        el.style.opacity='0';
+        el.style.zIndex='-9999';
+        document.getElementById('modalImage').src=c.toDataURL('image/jpeg');
+        document.getElementById('imageModal').style.display='flex';
+      });
+    }
+
+    function closeModal() {
+      document.getElementById('imageModal').style.display='none';
+    }
+
+    function downloadBillPDF() {
+      if(!populateBillArea()) return alert("No data");
+      let el=document.getElementById("billArea");
+      el.style.opacity='1';
+      el.style.zIndex='100';
+      showMsg("PDF generating...", "success");
+      setTimeout(() => {
+        try {
+          html2pdf().from(el).set({ margin:0.3, filename:`Bill_${curHistName}.pdf`, html2canvas:{scale:2} }).save().then(()=>el.style.opacity='0');
+        } catch(e) {
+          let w=window.open('','','width=900,height=700');
+          w.document.write('<html><body>'+el.innerHTML+'</body></html>');
+          w.document.close();
+          w.print();
+          el.style.opacity='0';
         }
+      }, 500);
+    }
 
-        async function shareBillImage() {
-            if (!populateBillArea()) return alert("Data nahi hai");
-            let element = document.getElementById("billArea"); element.style.left = '0px'; element.style.zIndex = '-100'; showMsg("Image ban rahi hai...", "success");
-            try {
-                const canvas = await html2canvas(element, { scale: 2, backgroundColor: '#ffffff', useCORS: true }); element.style.left = '-9999px';
-                canvas.toBlob(async (blob) => {
-                    const file = new File([blob], `SitaramDairy_Bill_${curHistName}.jpg`, { type: 'image/jpeg' });
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) { try { await navigator.share({ files: [file], title: 'Milk Bill', text: `Namaste, Sitaram Dairy se aapka bill. Customer: ${curHistName}` }); } catch (error) { console.log('Share canceled', error); } }
-                    else { showBillImageModal(); }
-                }, 'image/jpeg', 1.0);
-            } catch (err) { element.style.left = '-9999px'; console.error(err); }
+    function getCal(n) {
+      let now = new Date();
+      let isCurr = (now.getMonth() === custViewMonth && now.getFullYear() === custViewYear);
+      let first = new Date(custViewYear, custViewMonth, 1).getDay();
+      let days = new Date(custViewYear, custViewMonth+1, 0).getDate();
+      
+      let mRecs = dairyRecords.filter(r => {
+        let o = parseDate(r.date);
+        return o && o.m === custViewMonth && o.y === custViewYear && r.name === n;
+      });
+      
+      let calMap = {};
+      mRecs.forEach(r => {
+        let pd = parseDate(r.date);
+        if(pd) {
+          if(!calMap[pd.d]) calMap[pd.d]=[];
+          calMap[pd.d].push(r);
         }
+      });
+      
+      let h = `<div class="calendar-container"><div class="calendar-grid">`;
+      ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].forEach(d => h += `<div class="cal-header-cell">${d}</div>`);
+      for (let i = 0; i < first; i++) h += `<div class="cal-cell empty"></div>`;
+      for (let i = 1; i <= days; i++) {
+        let recs = calMap[i] || [];
+        let dH = '';
+        recs.forEach(r => dH += `<div class="cal-data ${r.matra.includes('🚫')?'gap':''}">${r.shift[0]}:${r.matra.split(' ')[0]}</div>`);
+        if(!dH) dH = `<div style="text-align:center; color:#ccc;">-</div>`;
+        h += `<div class="cal-cell ${isCurr && i === now.getDate() ? 'today' : ''}"><div class="cal-date">${i}</div>${dH}</div>`;
+      }
+      for (let i = 0; i < (7 - ((first + days) % 7)) % 7; i++) h += `<div class="cal-cell empty"></div>`;
+      return h + `</div></div>`;
+    }
 
-        function showBillImageModal() {
-            if (!populateBillArea()) return alert("Data nahi hai");
-            let element = document.getElementById("billArea"); element.style.left = '0px'; element.style.zIndex = '-100'; showMsg("Image Load ho rahi hai...", "success");
-            html2canvas(element, { scale: 2, backgroundColor: '#ffffff', useCORS: true }).then(canvas => {
-                element.style.left = '-9999px'; const imgData = canvas.toDataURL('image/jpeg', 1.0);
-                document.getElementById('modalImage').src = imgData; document.getElementById('imageModal').style.display = 'flex';
-            }).catch(err => { element.style.left = '-9999px'; console.error(err); });
-        }
-        function closeModal() { document.getElementById('imageModal').style.display = 'none'; }
+    function exportCSV() {
+      let mR = getFilteredRecords();
+      if(!mR.length) return alert("No data");
+      let csv = 'Date,Name,Product,Shift,Matra,Rate,Amount,Payment,Mode\n';
+      mR.forEach(r => csv += `"${r.date}","${r.name}","${r.product}","${r.shift}","${r.matra}","${r.rate}","${r.amount}","${r.payment}","${r.payMode||''}"\n`);
+      let a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8;'}));
+      a.download = `SitaramDairy.csv`;
+      a.click();
+    }
 
-        function downloadBillPDF() {
-            if (!populateBillArea()) return alert("Data nahi hai");
-            let element = document.getElementById("billArea"); element.style.left = '0px'; element.style.zIndex = '-100'; showMsg("PDF bana raha hai...", "success");
-            setTimeout(() => {
-                try {
-                    if (typeof html2pdf !== "undefined") {
-                        html2pdf().from(element).set({ margin: 0.3, filename: "Bill_" + curHistName.replace(/[^a-zA-Z0-9]/g, "_") + ".pdf", image: { type: 'jpeg', quality: 1 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' } }).save().then(() => { element.style.left = '-9999px'; });
-                        return;
-                    }
-                } catch (e) { console.log("Method 1 fail", e); }
-                try {
-                    let win = window.open('', '', 'width=900,height=700'); win.document.write('<html><head><title>Bill</title></head><body>'); win.document.write(element.innerHTML); win.document.write('</body></html>'); win.document.close(); win.focus(); win.print(); element.style.left = '-9999px'; showMsg("Print open ho gaya (Save as PDF karo)", "success"); return;
-                } catch (e) { console.log("Method 2 fail", e); }
-                try {
-                    let blob = new Blob([element.innerHTML], { type: "text/html" }); let url = URL.createObjectURL(blob); let a = document.createElement("a"); a.href = url; a.download = "Bill_" + curHistName.replace(/[^a-zA-Z0-9]/g, "_") + ".html"; a.click(); element.style.left = '-9999px'; showMsg("HTML file download hui (open karke Print → PDF karo)", "success");
-                } catch (e) { element.style.left = '-9999px'; alert("Kuch bhi kaam nahi kiya 😅 — browser issue hai"); }
-            }, 300);
-        }
-
-        function setProfMode(m) {
-            profMode = m;
-            if (m === 'online') { document.getElementById('pBtnO').classList.add('active'); document.getElementById('pBtnC').classList.remove('active'); }
-            else { document.getElementById('pBtnO').classList.remove('active'); document.getElementById('pBtnC').classList.add('active'); }
-            updateVisuals('profPayMode', 'profVisualArea', 'profInstructionTxt', m);
-        }
-
-        function openPayModal() { document.getElementById('payModal').style.display = 'flex'; document.getElementById('modalStep1').style.display = 'block'; document.getElementById('modalStep2').style.display = 'none'; document.getElementById('paySearchInput').value = ''; renderPayModalList(); }
-        function closePayModal() { document.getElementById('payModal').style.display = 'none'; }
-
-        function renderPayModalList() {
-            const q = document.getElementById('paySearchInput').value.toLowerCase();
-            const ul = document.getElementById('payCustomerList'); ul.innerHTML = ''; let udhaar = {};
-            dairyRecords.forEach(r => { if (r.payment !== 'paid' && !r.matra.includes('🚫') && isMatch(r.date)) { if (udhaar[r.name]) udhaar[r.name] += r.amount; else udhaar[r.name] = r.amount; } });
-            let entries = Object.entries(udhaar).filter(([n,a]) => n.toLowerCase().includes(q) && a > 0);
-            if (entries.length === 0) { ul.innerHTML = '<p style="text-align:center; padding:20px; color:var(--success-green); font-weight:bold;">No Dues! Sab Clear Hai.</p>'; return; }
-            entries.forEach(([n,a]) => {
-                ul.innerHTML += `<li class="khata-item" onclick="showQR('${safe(n)}', ${a})" style="cursor:pointer; margin-bottom: 8px;"><div class="shift-icon" style="background:#fee2e2; color:var(--danger-red);">${safe(n[0].toUpperCase())}</div><div style="flex:1;"><b>${safe(n)}</b></div><b style="color:var(--danger-red); font-size: 1.1rem;">Rs ${a} ></b></li>`;
-            });
-        }
-
-        function showQR(n, a) {
-            curPayName = n; document.getElementById('modalStep1').style.display = 'none'; document.getElementById('modalStep2').style.display = 'block';
-            document.getElementById('qrCustomerName').innerText = n; document.getElementById('qrAmount').innerText = 'Rs ' + a; setModalMode('online');
-        }
-
-        function setModalMode(m) {
-            modalMode = m;
-            if (m === 'online') { document.getElementById('mBtnOnline').classList.add('active'); document.getElementById('mBtnCash').classList.remove('active'); }
-            else { document.getElementById('mBtnOnline').classList.remove('active'); document.getElementById('mBtnCash').classList.add('active'); }
-            updateVisuals('modalPayMode', 'modalVisualArea', 'modalInstructionTxt', m);
-        }
-        function backToPayList() { document.getElementById('modalStep1').style.display = 'block'; document.getElementById('modalStep2').style.display = 'none'; }
-
-        function updateVisuals(modeInputId, visualAreaId, instructionTxtId, mode) {
-            const vArea = document.getElementById(visualAreaId); const instr = document.getElementById(instructionTxtId);
-            if (mode === 'online') {
-                if (savedQR) vArea.innerHTML = `<img src="${savedQR}" style="max-width:200px; max-height:200px; border:2px solid var(--primary-blue); border-radius:10px;">`;
-                else vArea.innerHTML = `<div style="width:160px; height:160px; border:5px solid var(--text-main); background:repeating-linear-gradient(45deg, #000, #000 10px, #fff 10px, #fff 20px); border-radius:10px; display:flex; align-items:center; justify-content:center; text-align:center;"><div style="background:white; color:black; padding:10px; font-weight:bold; border:2px solid #000; font-size:0.8rem;">DUMMY QR<br>Upload in Settings</div></div>`;
-                instr.innerText = "Grahak ko QR Code dikhayein.";
-            } else {
-                vArea.innerHTML = `<div style="font-size:5rem; background:#dcfce7; width:130px; height:130px; border-radius:100px; display:flex; align-items:center; justify-content:center; border:4px solid #166534;">💵</div>`;
-                instr.innerText = "Cash milne par confirm button dabayein.";
-            }
-        }
-
-        function confirmPayment(src) {
-            let n = src === 'modal' ? curPayName : curHistName;
-            if (!confirm(`Kya ${n} se payment mil gaya?`)) return;
-            let m = src === 'modal' ? modalMode : profMode;
-            let today = new Date(); today.setMinutes(today.getMinutes() - today.getTimezoneOffset()); let todayStr = today.toISOString().split('T')[0];
-            dairyRecords.forEach(r => { if (r.name === n && r.payment !== 'paid' && !r.matra.includes('🚫') && isMatch(r.date)) { r.payment = 'paid'; r.payMode = m; r.payDate = todayStr; } });
-            safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords)); triggerSync();
-            if (src === 'modal') closePayModal(); clearCache(); refreshAll(); showMsg("Payment Receive Ho Gaya!", "success");
-        }
-
-        function getCal(n) {
-            let now = new Date(); let isCurr = (now.getMonth() === custViewMonth && now.getFullYear() === custViewYear); let isFut = (custViewYear > now.getFullYear() || (custViewYear === now.getFullYear() && custViewMonth > now.getMonth()));
-            let first = new Date(custViewYear, custViewMonth, 1).getDay(); let days = new Date(custViewYear, custViewMonth+1, 0).getDate();
-            let mRecs = dairyRecords.filter(r => { let o = parseDate(r.date); return o && o.m === custViewMonth && o.y === custViewYear && r.name === n; });
-            let calMap = {}; mRecs.forEach(r => { let pd = parseDate(r.date); if (pd) { if (!calMap[pd.d]) calMap[pd.d] = []; calMap[pd.d].push(r); } });
-            
-            let h = `<div class="calendar-container"><div class="calendar-grid">`;
-            ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].forEach(d => { h += `<div class="cal-header-cell">${d}</div>`; });
-            for (let i = 0; i < first; i++) h += `<div class="cal-cell empty"></div>`;
-            for (let i = 1; i <= days; i++) {
-                let recs = calMap[i] || []; let dH = '';
-                recs.forEach(r => { let gapClass = r.matra.includes('🚫') ? 'gap' : ''; dH += `<div class="cal-data ${gapClass}">${r.shift[0]}:${r.matra.split(' ')[0]}</div>`; });
-                if (!dH) { if (isFut || (isCurr && i > now.getDate())) dH = `<div class="cal-data future" style="color:#ccc; font-size:0.5rem;">Wait</div>`; else dH = `<div style="text-align:center; color:var(--text-muted);">-</div>`; }
-                let todayClass = (isCurr && i === now.getDate()) ? 'today' : '';
-                h += `<div class="cal-cell ${todayClass}"><div class="cal-date">${i}</div>${dH}</div>`;
-            }
-            const rem = (7 - ((first + days) % 7)) % 7; for (let i = 0; i < rem; i++) h += `<div class="cal-cell empty"></div>`;
-            h += `</div></div>`; return h;
-        }
-
-        function exportCSV() {
-            let mR = getFilteredRecords(); if (mR.length === 0) return alert("Is mahine data nahi hai.");
-            let csv = 'Date,Name,Product,Shift,Matra,Rate,Amount,Payment,Mode\n';
-            mR.forEach(r => {
-                let cleanName = safe(r.name.replace(/,/g, '')); let cleanMatra = safe(r.matra.replace(/,/g, '').replace('Aaj ka Gap 🚫', 'Gap'));
-                csv += `"${r.date}","${cleanName}","${r.product}","${r.shift}","${cleanMatra}","${r.rate}","${r.amount}","${r.payment}","${r.payMode || ''}"\n`;
-            });
-            let a = document.createElement('a'); a.href = URL.createObjectURL(new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8;' })); a.download = `SitaramDairy_${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][viewMonth]}_${viewYear}.csv`; a.click(); showMsg("Excel Download Ho Gayi!", "success");
-        }
-
-        function clearAllData() {
-            if (confirm("Dhyan dein! Sab mita dein? Grahak aur Record dono mitya jayenge!")) {
-                localStorage.clear(); try { firebase.database().ref('sitaramDairyData').set(null); } catch(e) {} location.reload();
-            }
-        }
-    </script>
+    // 🔥 FIX: Clear data only from current user's database node
+    function clearAllData() {
+      if (confirm("Sab delete ho jayega! Pakka?")) {
+        localStorage.clear();
+        try{
+          let ref = getUserRef();
+          if (ref) ref.set(null);
+        } catch(e) {}
+        location.reload();
+      }
+    }
+  </script>
 </body>
 </html>
+
+```
