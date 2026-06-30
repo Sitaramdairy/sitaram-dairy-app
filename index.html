@@ -1,2986 +1,887 @@
 <!DOCTYPE html>
 <html lang="hi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Sitaram Dairy App PRO - Enterprise v5.0</title>
-  
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.1/firebase-database-compat.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-  
-  <style>
-    /* =========================================
-       1. PREMIUM APP VARIABLES & CORE DESIGN
-    ========================================= */
-    :root {
-      --primary-blue: #1565C0;
-      --light-bg: #f4f7fa;
-      --card-bg: #ffffff;
-      --text-main: #111827;
-      --text-muted: #6b7280;
-      --success-green: #388e3c;
-      --danger-red: #dc2626;
-      --border-color: #e5e7eb;
-      --whatsapp-green: #25D366;
-      --cloud-blue: #0ea5e9;
-      --safe-bottom: env(safe-area-inset-bottom, 15px);
-    }
-
-    body.dark-mode {
-      --primary-blue: #1e3a8a;
-      --light-bg: #121212;
-      --card-bg: #1e1e1e;
-      --text-main: #f3f4f6;
-      --text-muted: #9ca3af;
-      --border-color: #374151;
-      --success-green: #4caf50;
-    }
-
-    html, body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--light-bg);
-      color: var(--text-main);
-      margin: 0; 
-      padding: 0;
-      overflow-x: hidden; 
-      overflow-y: auto;
-      display: flex; 
-      flex-direction: column;
-      height: 100vh; 
-      width: 100vw;
-      overscroll-behavior-y: none;
-    }
-
-    button, .action-btn, .khata-item, .qty-pill { 
-      transition: transform 0.1s ease, background-color 0.2s ease; 
-    }
-    
-    button:active:not(:disabled), .action-btn:active, .khata-item:active, .qty-pill:active { 
-      transform: scale(0.96) !important; 
-    }
-    
-    button:disabled { 
-      opacity: 0.7; 
-      cursor: not-allowed; 
-    }
-
-    /* =========================================
-       2. TOP HEADER
-    ========================================= */
-    header { 
-      background-color: var(--primary-blue); 
-      color: white; 
-      padding: 15px 20px 25px 20px; 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      z-index: 10; 
-    }
-    
-    header h1 { 
-      margin: 0; 
-      font-size: 1.4rem; 
-      font-weight: 600; 
-      display: flex; 
-      align-items: center; 
-      gap: 8px; 
-    }
-    
-    .cloud-indicator { 
-      font-size: 0.8rem; 
-      color: #ffffff; 
-      background: rgba(255,255,255,0.2); 
-      padding: 4px 8px; 
-      border-radius: 12px; 
-      font-weight: normal; 
-    }
-
-    /* =========================================
-       3. SIDEBAR MENU
-    ========================================= */
-    .sidebar-overlay { 
-      display: none; 
-      position: fixed; 
-      top: 0; 
-      left: 0; 
-      right: 0; 
-      bottom: 0; 
-      background: rgba(0,0,0,0.5); 
-      z-index: 998; 
-      opacity: 0; 
-      transition: opacity 0.3s; 
-    }
-    
-    .sidebar { 
-      position: fixed; 
-      top: 0; 
-      left: -280px; 
-      width: 280px; 
-      height: 100%; 
-      background: var(--card-bg); 
-      z-index: 999; 
-      transition: left 0.3s ease; 
-      box-shadow: 2px 0 10px rgba(0,0,0,0.1); 
-      display: flex; 
-      flex-direction: column; 
-      overflow-y: auto; 
-      overscroll-behavior-y: none; 
-      -webkit-overflow-scrolling: touch; 
-    }
-    
-    .sidebar-header { 
-      background: var(--primary-blue); 
-      color: white; 
-      padding: 30px 20px; 
-      flex-shrink: 0; 
-    }
-    
-    .sidebar-menu { 
-      list-style: none; 
-      padding: 0; 
-      margin: 0; 
-    }
-    
-    .sidebar-menu li { 
-      padding: 15px 20px; 
-      font-size: 1.05rem; 
-      font-weight: 600; 
-      color: var(--text-main); 
-      border-bottom: 1px solid var(--border-color); 
-      cursor: pointer; 
-      display: flex; 
-      align-items: center; 
-      gap: 15px; 
-    }
-    
-    .sidebar-menu li:active { 
-      background-color: var(--light-bg); 
-    }
-
-    /* =========================================
-       4. APP BODY & SLIDING PAGES
-    ========================================= */
-    .app-body { 
-      flex-grow: 1; 
-      position: relative; 
-      overflow: hidden; 
-      margin-top: -15px; 
-      background-color: var(--light-bg); 
-    }
-    
-    .slide-wrapper { 
-      display: flex; 
-      flex-wrap: nowrap; 
-      width: 400%; 
-      height: 100%; 
-      transition: transform 0.3s ease-in-out; 
-    }
-    
-    .page { 
-      flex: 0 0 25%; 
-      width: 25%; 
-      height: 100%; 
-      padding: 0 15px 15px 15px; 
-      box-sizing: border-box; 
-      overflow-y: auto; 
-      -webkit-overflow-scrolling: touch; 
-      padding-bottom: calc(90px + var(--safe-bottom)); 
-    }
-    
-    .page::-webkit-scrollbar { 
-      display: none; 
-    }
-
-    /* =========================================
-       5. DASHBOARD CARDS & STATS
-    ========================================= */
-    .main-card { 
-      background: var(--card-bg); 
-      border-radius: 16px; 
-      padding: 20px; 
-      box-shadow: 0 4px 15px rgba(0,0,0,0.05); 
-      margin-bottom: 20px; 
-    }
-    
-    .month-selector { 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
-      color: var(--primary-blue); 
-      font-weight: bold; 
-      margin-bottom: 20px; 
-    }
-    
-    .month-btn { 
-      cursor: pointer; 
-      padding: 5px 15px; 
-      background: #e0e7ff; 
-      border-radius: 8px; 
-      user-select: none; 
-    }
-    
-    .month-text { 
-      margin: 0 15px; 
-      min-width: 120px; 
-      text-align: center; 
-    }
-    
-    .stats-row { 
-      display: flex; 
-      justify-content: space-between; 
-      margin-bottom: 15px; 
-      text-align: left; 
-    }
-    
-    .stat-label { 
-      font-size: 0.85rem; 
-      color: var(--text-muted); 
-      display: block; 
-      margin-bottom: 4px; 
-    }
-    
-    .stat-value { 
-      font-size: 1.1rem; 
-      font-weight: bold; 
-    }
-
-    /* =========================================
-       6. BUTTONS & INPUTS
-    ========================================= */
-    .btn-add-entry { 
-      background-color: var(--primary-blue); 
-      color: white; 
-      border: none; 
-      width: 100%; 
-      padding: 14px; 
-      border-radius: 12px; 
-      font-size: 1.1rem; 
-      font-weight: 600; 
-      cursor: pointer; 
-      box-shadow: 0 4px 10px rgba(21, 101, 192, 0.3); 
-    }
-    
-    .btn-success { 
-      background-color: var(--success-green); 
-      box-shadow: 0 4px 10px rgba(56, 142, 60, 0.3); 
-    }
-    
-    .quick-actions { 
-      display: flex; 
-      justify-content: center; 
-      gap: 10px; 
-      margin-bottom: 20px; 
-    }
-    
-    .action-btn { 
-      background: var(--card-bg); 
-      border: none; 
-      border-radius: 12px; 
-      padding: 12px; 
-      flex: 1; 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      gap: 5px; 
-      font-size: 0.85rem; 
-      font-weight: 600; 
-      color: var(--text-main); 
-      box-shadow: 0 2px 8px rgba(0,0,0,0.04); 
-      cursor: pointer; 
-    }
-    
-    .search-bar { 
-      width: 100%; 
-      padding: 14px; 
-      border-radius: 12px; 
-      border: 1px solid var(--border-color); 
-      background: var(--card-bg); 
-      color: var(--text-main); 
-      margin-bottom: 20px; 
-      font-size: 1rem; 
-      box-sizing: border-box; 
-    }
-    
-    .section-header { 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      margin-bottom: 10px; 
-    }
-    
-    .form-group { 
-      margin-bottom: 15px; 
-    }
-    
-    .form-group label { 
-      display: block; 
-      margin-bottom: 5px; 
-      font-weight: bold; 
-      font-size: 0.9rem; 
-    }
-    
-    .form-group input, 
-    .form-group select, 
-    .form-group textarea { 
-      width: 100%; 
-      padding: 12px; 
-      border-radius: 10px; 
-      border: 1px solid var(--border-color); 
-      background: var(--light-bg); 
-      color: var(--text-main); 
-      box-sizing: border-box; 
-      font-family: inherit; 
-    }
-
-    /* =========================================
-       7. LIST ITEMS (PILL SHAPE & AVATAR)
-    ========================================= */
-    .khata-list { 
-      list-style: none; 
-      padding: 0; 
-      margin: 0; 
-    }
-    
-    .khata-item { 
-      background: #f4f5f8; 
-      border-radius: 24px; 
-      padding: 12px 16px; 
-      margin-bottom: 15px; 
-      display: flex; 
-      align-items: center; 
-      border: none; 
-      cursor: pointer; 
-      transition: 0.2s; 
-    }
-    
-    .khata-avatar { 
-      width: 48px; 
-      height: 48px; 
-      border-radius: 50%; 
-      background: var(--primary-blue); 
-      color: white; 
-      display: flex; 
-      justify-content: center; 
-      align-items: center; 
-      font-size: 1.3rem; 
-      font-weight: 600; 
-      margin-right: 15px; 
-      flex-shrink: 0; 
-    }
-    
-    .khata-details { 
-      flex: 1; 
-      display: flex; 
-      flex-direction: column; 
-      justify-content: center; 
-    }
-    
-    .khata-details b { 
-      font-size: 1.1rem; 
-      color: #1f2937; 
-      margin-bottom: 2px; 
-    }
-    
-    .khata-details small { 
-      color: #6b7280; 
-      font-size: 0.85rem; 
-    }
-    
-    .khata-right { 
-      display: flex; 
-      align-items: center; 
-      gap: 15px; 
-    }
-    
-    .khata-due { 
-      color: var(--danger-red); 
-      font-weight: 700; 
-      font-size: 0.95rem; 
-    }
-    
-    .khata-add-btn { 
-      background: #dbeafe; 
-      color: #1e40af; 
-      border: none; 
-      padding: 8px 16px; 
-      border-radius: 12px; 
-      font-weight: 600; 
-      font-size: 0.95rem; 
-      cursor: pointer; 
-      display: flex; 
-      align-items: center; 
-      gap: 4px; 
-    }
-    
-    .entry-amount { 
-      font-weight: bold; 
-      color: var(--success-green); 
-    }
-    
-    .entry-amount.unpaid { 
-      color: var(--danger-red); 
-    }
-    
-    .pay-status { 
-      font-size: 0.75rem; 
-      padding: 3px 6px; 
-      border-radius: 4px; 
-      font-weight: bold; 
-      display: inline-block; 
-    }
-    
-    .status-paid { 
-      background: #dcfce7; 
-      color: #166534; 
-      border: 1px solid #166534; 
-    }
-    
-    .status-due { 
-      background: #fee2e2; 
-      color: #991b1b; 
-      border: 1px solid #991b1b; 
-    }
-
-    /* =========================================
-       NEW CUSTOMER & ENTRY FORM UI
-    ========================================= */
-    .input-with-icon { 
-      position: relative; 
-      margin-bottom: 15px; 
-    }
-    
-    .input-with-icon span { 
-      position: absolute; 
-      left: 15px; 
-      top: 50%; 
-      transform: translateY(-50%); 
-      font-size: 1.2rem; 
-      color: #6b7280; 
-      z-index: 2; 
-    }
-    
-    .input-with-icon input, 
-    .input-with-icon textarea { 
-      width: 100%; 
-      padding: 14px 14px 14px 45px; 
-      border-radius: 12px; 
-      border: 1px solid var(--border-color); 
-      background: #f9fafb; 
-      font-size: 1rem; 
-      box-sizing: border-box; 
-      outline: none; 
-      transition: border 0.3s; 
-    }
-    
-    .input-with-icon input:focus, 
-    .input-with-icon textarea:focus { 
-      border-color: var(--primary-blue); 
-      background: white; 
-    }
-    
-    .modern-input-group label { 
-      font-size: 0.8rem; 
-      color: var(--text-muted); 
-      margin-bottom: 5px; 
-      display: block; 
-      font-weight: 600; 
-    }
-    
-    .modern-input-group input, 
-    .modern-input-group select, 
-    .modern-input-group textarea { 
-      width: 100%; 
-      padding: 12px 14px; 
-      border-radius: 10px; 
-      border: 1px solid var(--border-color); 
-      background: white; 
-      font-size: 1rem; 
-      box-sizing: border-box; 
-      outline: none; 
-      font-family: inherit;
-    }
-    
-    .modern-input-group input:focus, 
-    .modern-input-group select:focus, 
-    .modern-input-group textarea:focus { 
-      border-color: var(--primary-blue); 
-    }
-
-    .qty-pill { 
-      background: #e0e7ff; 
-      color: var(--primary-blue); 
-      border: 1px solid #c7d2fe; 
-      border-radius: 20px; 
-      padding: 8px 16px; 
-      font-weight: bold; 
-      cursor: pointer; 
-      white-space: nowrap; 
-      flex-shrink: 0; 
-      font-size: 0.9rem; 
-    }
-    
-    .qty-pill:active { 
-      background: #c7d2fe; 
-    }
-
-    .switch { 
-      position: relative; 
-      display: inline-block; 
-      width: 50px; 
-      height: 28px; 
-    }
-    
-    .switch input { 
-      opacity: 0; 
-      width: 0; 
-      height: 0; 
-    }
-    
-    .slider { 
-      position: absolute; 
-      cursor: pointer; 
-      top: 0; 
-      left: 0; 
-      right: 0; 
-      bottom: 0; 
-      background-color: #ccc; 
-      transition: .4s; 
-    }
-    
-    .slider:before { 
-      position: absolute; 
-      content: ""; 
-      height: 20px; 
-      width: 20px; 
-      left: 4px; 
-      bottom: 4px; 
-      background-color: white; 
-      transition: .4s; 
-    }
-    
-    input:checked + .slider { 
-      background-color: var(--primary-blue); 
-    }
-    
-    input:checked + .slider:before { 
-      transform: translateX(22px); 
-    }
-    
-    .slider.round { 
-      border-radius: 34px; 
-    }
-    
-    .slider.round:before { 
-      border-radius: 50%; 
-    }
-
-    /* =========================================
-       8. CALENDAR VIEW
-    ========================================= */
-    .calendar-container { 
-      background: var(--card-bg); 
-      border-radius: 12px; 
-      overflow: hidden; 
-      border: 1px solid var(--border-color); 
-      margin-bottom: 15px; 
-    }
-    
-    .calendar-header { 
-      background: var(--primary-blue); 
-      color: white; 
-      text-align: center; 
-      padding: 10px; 
-      font-weight: bold; 
-    }
-    
-    .calendar-grid { 
-      display: grid; 
-      grid-template-columns: repeat(7, 1fr); 
-      background: var(--border-color); 
-      gap: 1px; 
-    }
-    
-    .cal-header-cell { 
-      text-align: center; 
-      font-size: 0.7rem; 
-      font-weight: bold; 
-      padding: 8px; 
-      background: var(--light-bg); 
-    }
-    
-    .cal-cell { 
-      background: var(--card-bg); 
-      min-height: 55px; 
-      padding: 2px; 
-    }
-    
-    .cal-cell.empty { 
-      background: var(--light-bg); 
-    }
-    
-    .cal-cell.today { 
-      border: 2px solid var(--primary-blue); 
-      background: #eff6ff; 
-    }
-    
-    .cal-date { 
-      font-size: 0.75rem; 
-      text-align: right; 
-      color: var(--text-muted); 
-    }
-    
-    .cal-data { 
-      font-size: 0.6rem; 
-      text-align: center; 
-      font-weight: bold; 
-      color: var(--success-green); 
-      line-height: 1.1; 
-    }
-    
-    .cal-data.gap { 
-      color: var(--danger-red); 
-    }
-
-    /* =========================================
-       9. BOTTOM NAVIGATION
-    ========================================= */
-    .bottom-nav { 
-      position: fixed; 
-      bottom: 0; 
-      left: 0; 
-      width: 100%; 
-      background: var(--card-bg); 
-      display: flex; 
-      box-shadow: 0 -4px 10px rgba(0,0,0,0.05); 
-      z-index: 20; 
-      padding-bottom: var(--safe-bottom); 
-    }
-    
-    .nav-item { 
-      flex: 1; 
-      text-align: center; 
-      padding: 12px 0; 
-      color: var(--text-muted); 
-      font-weight: 600; 
-      font-size: 0.8rem; 
-      cursor: pointer; 
-      transition: color 0.2s; 
-    }
-    
-    .nav-item.active { 
-      color: var(--primary-blue); 
-      border-top: 3px solid var(--primary-blue); 
-      background: var(--light-bg); 
-    }
-
-    /* =========================================
-       10. MODALS & POPUPS
-    ========================================= */
-    .modal-overlay { 
-      display: none; 
-      position: fixed; 
-      top: 0; 
-      left: 0; 
-      width: 100%; 
-      height: 100%; 
-      background: rgba(0,0,0,0.6); 
-      z-index: 1000; 
-      align-items: flex-end; 
-      justify-content: center; 
-    }
-    
-    .modal-content { 
-      background: var(--card-bg); 
-      width: 100%; 
-      max-height: 85vh; 
-      border-radius: 20px 20px 0 0; 
-      padding: 20px; 
-      padding-bottom: calc(20px + var(--safe-bottom)); 
-      box-sizing: border-box; 
-      overflow-y: auto; 
-      animation: slideUp 0.3s; 
-      -webkit-overflow-scrolling: touch; 
-    }
-    
-    @keyframes slideUp { 
-      from { transform: translateY(100%); } 
-      to { transform: translateY(0); } 
-    }
-    
-    .pay-method-group { 
-      display: flex; 
-      gap: 10px; 
-      margin: 10px 0; 
-      justify-content: center; 
-    }
-    
-    .pay-btn { 
-      flex: 1; 
-      max-width: 120px; 
-      padding: 12px; 
-      border-radius: 8px; 
-      border: 1px solid var(--border-color); 
-      font-weight: bold; 
-      background: var(--light-bg); 
-      color: var(--text-main); 
-      cursor: pointer; 
-    }
-    
-    .pay-btn.active { 
-      border: 2px solid var(--primary-blue); 
-      background: #eff6ff; 
-      color: var(--primary-blue); 
-    }
-    
-    .cust-nav-tabs { 
-      display: flex; 
-      border-bottom: 1px solid var(--border-color); 
-      margin: 10px 0 15px 0; 
-    }
-    
-    .cust-nav-tab { 
-      flex: 1; 
-      text-align: center; 
-      padding: 10px; 
-      font-weight: bold; 
-      color: var(--text-muted); 
-      cursor: pointer; 
-    }
-    
-    .cust-nav-tab.active { 
-      color: var(--primary-blue); 
-      border-bottom: 3px solid var(--primary-blue); 
-      background: var(--light-bg); 
-    }
-
-    /* =========================================
-       11. TOAST NOTIFICATION
-    ========================================= */
-    #toastBox { 
-      position: fixed; 
-      bottom: calc(80px + var(--safe-bottom)); 
-      left: 50%; 
-      transform: translateX(-50%); 
-      background: #333; 
-      color: #fff; 
-      padding: 12px 24px; 
-      border-radius: 30px; 
-      font-weight: bold; 
-      font-size: 0.95rem; 
-      z-index: 9999; 
-      display: none; 
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
-      white-space: nowrap; 
-      text-align: center; 
-    }
-    
-    .toast-success { 
-      background-color: var(--success-green) !important; 
-    }
-    
-    .toast-error { 
-      background-color: var(--danger-red) !important; 
-    }
-    
-    @keyframes fadeInOut { 
-      0% { opacity: 0; bottom: calc(60px + var(--safe-bottom)); } 
-      15% { opacity: 1; bottom: calc(80px + var(--safe-bottom)); } 
-      85% { opacity: 1; bottom: calc(80px + var(--safe-bottom)); } 
-      100% { opacity: 0; bottom: calc(60px + var(--safe-bottom)); } 
-    }
-
-    /* =========================================
-       12. SECURE GOOGLE LOGIN SCREEN
-    ========================================= */
-    #loginScreen { 
-      position: fixed; 
-      top: 0; 
-      left: 0; 
-      width: 100%; 
-      height: 100%; 
-      background: var(--primary-blue); 
-      z-index: 10000; 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      justify-content: center; 
-    }
-    
-    .login-box { 
-      background: white; 
-      padding: 30px; 
-      border-radius: 15px; 
-      text-align: center; 
-      width: 80%; 
-      max-width: 320px; 
-      box-shadow: 0 10px 25px rgba(0,0,0,0.3); 
-    }
-
-    /* =========================================
-       13. IMAGE MODAL
-    ========================================= */
-    #imageModal { 
-      display: none; 
-      position: fixed; 
-      top: 0; 
-      left: 0; 
-      width: 100%; 
-      height: 100%; 
-      background: rgba(0,0,0,0.9); 
-      z-index: 10000; 
-      justify-content: center; 
-      align-items: center; 
-      flex-direction: column; 
-      padding: 20px; 
-      box-sizing: border-box; 
-    }
-    
-    #modalImage { 
-      max-width: 100%; 
-      max-height: 70vh; 
-      background: white; 
-      border-radius: 8px; 
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5); 
-      object-fit: contain; 
-    }
-    
-    .modal-text { 
-      color: #fff; 
-      margin-bottom: 20px; 
-      font-size: 1.1em; 
-      text-align: center; 
-      line-height: 1.5; 
-    }
-    
-    .btn-close-modal { 
-      margin-top: 20px; 
-      background-color: #bdc3c7; 
-      color: #333; 
-      padding: 10px 20px; 
-      border-radius: 8px; 
-      font-weight: bold; 
-      border: none; 
-      cursor: pointer; 
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Khata Book - Sitaram Dairy v8.0</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <style>
+        :root { --primary-blue: #1565C0; --light-bg: #f4f7fa; --card-bg: #ffffff; --text-main: #111827; --text-muted: #6b7280; --success-green: #388e3c; --danger-red: #dc2626; --warning-orange: #f59e0b; --border-color: #e5e7eb; --safe-bottom: env(safe-area-inset-bottom, 15px); }
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+        body { margin: 0; padding: 0; background: var(--light-bg); color: var(--text-main); display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        button { cursor: pointer; transition: transform 0.1s; border: none; }
+        button:active:not(:disabled) { transform: scale(0.96); }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        header { background: var(--primary-blue); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; z-index: 10; }
+        .app-body { flex-grow: 1; position: relative; overflow: hidden; }
+        .slide-wrapper { display: flex; width: 100%; height: 100%; transition: transform 0.3s ease-in-out; }
+        .page { flex: 0 0 100%; height: 100%; padding: 15px; overflow-y: auto; padding-bottom: calc(80px + var(--safe-bottom)); }
+        .main-card { background: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .input-group label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; font-weight: 600; }
+        .input-group input, .input-group select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px; outline: none; font-size: 1rem; }
+        .input-group input:focus, .input-group select:focus { border-color: var(--primary-blue); }
+        .btn-primary { background: var(--primary-blue); color: white; width: 100%; padding: 14px; border-radius: 8px; font-weight: bold; font-size: 1rem; display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-success { background: var(--success-green); }
+        .btn-danger { background: var(--danger-red); }
+        .btn-warning { background: var(--warning-orange); color: white; }
+        .qty-pill { background: #e0e7ff; color: var(--primary-blue); padding: 8px 12px; border-radius: 20px; font-weight: bold; margin-right: 5px; margin-bottom: 10px; display: inline-block; font-size: 0.9rem;}
+        .khata-item { background: var(--card-bg); border-radius: 10px; padding: 15px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border: 1px solid var(--border-color); }
+        .khata-details b { font-size: 1.1rem; display: block; }
+        .khata-details small { color: var(--text-muted); font-size: 0.85rem; }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--card-bg); display: flex; border-top: 1px solid var(--border-color); padding-bottom: var(--safe-bottom); z-index: 100; }
+        .nav-item { flex: 1; text-align: center; padding: 12px 0; color: var(--text-muted); font-size: 0.8rem; cursor: pointer; font-weight: 600; }
+        .nav-item.active { color: var(--primary-blue); border-top: 3px solid var(--primary-blue); background: #f0f7ff; }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 1000; align-items: center; justify-content: center; }
+        .modal-content { background: var(--card-bg); width: 95%; max-width: 450px; padding: 20px; border-radius: 12px; max-height: 95vh; overflow-y: auto; }
+        #toast { position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%); padding: 12px 24px; border-radius: 30px; color: white; font-weight: bold; display: none; z-index: 9999; text-align: center; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: opacity 0.3s;}
+        .flex-row { display: flex; gap: 10px; }
+        .flex-1 { flex: 1; }
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+        .stat-box { background: #f8fafc; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid var(--border-color); }
+        .stat-box b { font-size: 1.2rem; color: var(--primary-blue); }
+        
+        /* Proper Calendar CSS */
+        .bulk-tabs { display: flex; margin-bottom: 15px; background: var(--border-color); border-radius: 8px; overflow: hidden; }
+        .bulk-tab { flex: 1; text-align: center; padding: 12px; font-weight: bold; cursor: pointer; color: var(--text-muted); transition: background 0.3s;}
+        .bulk-tab.active.morning { background: var(--warning-orange); color: white; }
+        .bulk-tab.active.evening { background: var(--primary-blue); color: white; }
+        .bulk-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 15px; text-align: center; }
+        .bulk-day-header { font-size: 0.75rem; font-weight: bold; color: var(--text-muted); padding-bottom: 5px; }
+        .bulk-day { background: #f8fafc; border: 1px solid var(--border-color); border-radius: 6px; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; font-size: 0.95rem; }
+        .bulk-day.selected { background: var(--success-green); color: white; border-color: var(--success-green); }
+        .bulk-day.paid-entry { background: #e0f2f1; border-color: var(--primary-blue); color: var(--primary-blue); } /* Identifies Paid Entries visually */
+        .bulk-day.empty { background: transparent; border: none; cursor: default; }
+    </style>
 </head>
-
 <body>
-  <div id="loginScreen">
-    <div class="login-box">
-      <div style="font-size: 3rem; margin-bottom: 10px;">🛡️</div>
-      <h2 style="color: var(--primary-blue); margin-top:0; margin-bottom: 5px;">Sitaram Dairy</h2>
-      <p style="color: #666; font-size: 0.9rem; margin-top: 0;">Secure Cloud Access</p>
-      
-      <button class="btn-add-entry" style="background-color: #ffffff; color: #757575; border: 1px solid #ddd; margin-top: 25px; display: flex; align-items: center; justify-content: center; gap: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="googleLogin()">
-        <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" style="width: 22px;">
-        Sign in with Google
-      </button>
-    </div>
-  </div>
 
-  <div id="toastBox" class="toast-success">Message Here</div>
-  <input type="file" id="restoreUpload" accept=".json, application/json, text/plain, */*" style="display:none;" onchange="restoreBackup(this)">
-  
-  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
-  
-  <div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <h2>Sitaram Dairy</h2>
-      <p id="lblAppVersion">Enterprise PRO v5.0 🚀</p>
-    </div>
-    <ul class="sidebar-menu">
-      <li onclick="closeSidebar(); manualRefresh()" style="background-color: #eff6ff; color: var(--primary-blue); font-weight:bold; border-radius: 8px; margin: 10px;">
-        🔄 <span id="lblRefreshSide">Refresh Page</span>
-      </li>
-      <li onclick="closeSidebar(); openAutoEntryModal()" style="background-color: #fdfae5; color: #b45309; font-weight:bold; border-radius: 8px; margin: 0 10px 10px 10px; border: 1px solid #fde68a;">
-        🤖 <span>Auto-Entry Setup</span>
-      </li>
-      <li onclick="closeSidebar(); switchTab(0)">
-        <span id="lblNavHomeSide">🏠 Home Dashboard</span>
-      </li>
-      <li onclick="closeSidebar(); switchTab(1)">
-        <span id="lblNavEntrySide">📝 Add New Entry</span>
-      </li>
-      <li onclick="closeSidebar(); openHistory()">
-        <span id="lblNavHistSide">⏱️ Customer History</span>
-      </li>
-      <li onclick="closeSidebar(); switchTab(3)">
-        <span id="lblNavCustSide">👤 Manage Customers</span>
-      </li>
-      <li style="border-top: 1px solid var(--border-color); margin-top: 5px; padding-top: 15px; color: var(--primary-blue);" onclick="closeSidebar(); openSettingsModal()">
-        ⚙️ <span id="lblSettingsSide">Settings (QR Upload)</span>
-      </li>
-      <li onclick="closeSidebar(); downloadBackup()" style="color: var(--primary-blue);">
-        💾 <span id="lblBackupSide">Download File Backup</span>
-      </li>
-      <li onclick="closeSidebar(); document.getElementById('restoreUpload').click()" style="color: var(--success-green);">
-        📂 <span id="lblRestoreSide">Restore File Backup</span>
-      </li>
-      <li onclick="toggleDarkMode()" style="color: var(--text-main);">
-        🌙 <span id="lblDarkMode">Dark Mode Toggle</span>
-      </li>
-      <li style="color: #f59e0b; border-top: 1px solid var(--border-color); margin-top:10px; padding-top: 15px;" onclick="lockApp()">
-        🔒 <span>Logout App</span>
-      </li>
-      <li style="color: var(--danger-red);" onclick="closeSidebar(); clearAllData()">
-        🗑️ <span id="lblClearSide">Clear All Data</span>
-      </li>
-    </ul>
-  </div>
-
-  <header class="no-print">
-    <div onclick="openSidebar()" style="font-size: 1.5rem; cursor: pointer;">☰</div>
-    <h1>Sitaram Dairy <span class="cloud-indicator" id="cloudStatus">☁️ Checking</span></h1>
-    <div style="font-size: 1.5rem;">🔔</div>
-  </header>
-
-  <div class="app-body no-print">
-    <div class="slide-wrapper" id="slideWrapper">
-      
-      <div class="page" id="pageHome">
-        <div class="main-card" style="margin-top: 15px;">
-          <div class="month-selector">
-            <span class="month-btn" onclick="prevMonth()">&lt;</span>
-            <span class="month-text" id="currentMonthText">May 2026</span>
-            <span class="month-btn" onclick="nextMonth()">&gt;</span>
-          </div>
-          <div class="stats-row">
-            <div>
-              <span class="stat-label" id="lblMilk">Milk</span>
-              <span class="stat-value" id="dashDoodh">0 L</span>
-            </div>
-            <div>
-              <span class="stat-label" id="lblGhee">Ghee</span>
-              <span class="stat-value" id="dashGhee">0 kg</span>
-            </div>
-            <div>
-              <span class="stat-label" id="lblMahi">Mahi</span>
-              <span class="stat-value" id="dashMahi">0 L</span>
-            </div>
-          </div>
-          <div class="stats-row" style="border-top:1px solid var(--border-color); padding-top:10px;">
-            <div>
-              <span class="stat-label">Total Bill</span>
-              <span class="stat-value" id="dashTotalBill" style="color:var(--primary-blue)">Rs 0</span>
-            </div>
-            <div style="text-align: right;">
-              <span class="stat-label">Outstanding</span>
-              <span class="stat-value" id="dashOutstanding" style="color:var(--danger-red)">Rs 0</span>
-            </div>
-          </div>
-          <div class="stats-row" style="padding-top:5px;">
-            <div style="color: var(--success-green);">
-              <span class="stat-label" id="lblPaid">Paid ✅</span>
-              <span class="stat-value" id="dashPaid">Rs 0</span>
-            </div>
-            <div style="color: var(--danger-red); text-align: right;">
-              <span class="stat-label" id="lblDue">Due ❌</span>
-              <span class="stat-value" id="dashUnpaid">Rs 0</span>
-            </div>
-          </div>
-          <button class="btn-add-entry" style="margin-top:15px;" onclick="switchTab(1)" id="btnAddEntryHome">➕ Add New Entry</button>
+    <header>
+        <h3 style="margin:0;"><i class="fas fa-book"></i> Khata Book</h3>
+        <div style="display:flex; gap:15px;">
+            <button onclick="openSettingsModal()" aria-label="Settings" style="background:none; color:white; font-size:1.2rem;"><i class="fas fa-cog"></i></button>
+            <button onclick="exportCSV()" aria-label="Export to CSV" style="background:none; color:white; font-size:1.2rem;"><i class="fas fa-file-excel"></i></button>
         </div>
+    </header>
 
-        <div class="main-card" id="analyticsCard">
-          <div class="section-header">
-            <h3 style="margin: 0; color: var(--text-main);">📈 Daily Analytics</h3>
-          </div>
-          <canvas id="milkChart" width="400" height="200" style="margin-top: 10px;"></canvas>
-        </div>
-
-        <div class="quick-actions">
-          <button class="action-btn" onclick="openPayModal()">
-            <span>💳</span> 
-            <span id="lblPayBtn">Pay/Udhaar</span>
-          </button>
-          <button class="action-btn" onclick="openHistory()">
-            <span>⏱️</span> 
-            <span id="lblHistBtn">History</span>
-          </button>
-        </div>
-
-        <input type="text" class="search-bar" placeholder="🔍 Search naam..." id="searchInput" oninput="debounceFilterHomeList()">
-        
-        <div style="display:flex; justify-content:space-between; margin-bottom:10px; align-items:center;">
-          <h3 style="margin:0; color: var(--text-main);" id="lblRecent">Recent Entries</h3>
-          <span style="color:var(--primary-blue); font-weight:bold; font-size:0.9rem; cursor:pointer;" onclick="openHistory()">View All</span>
-        </div>
-        <ul class="khata-list" id="homeRecentList"></ul>
-      </div>
-
-      <div class="page" id="pageEntry">
-        <div class="form-card" style="margin-top:20px; background:var(--card-bg); padding:20px; border-radius:16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-          
-          <h3 style="margin-top: 0; color: var(--text-main); font-size: 1.3rem; margin-bottom: 20px;" id="lblNewEntry">Add New Entry</h3>
-          
-          <div class="input-with-icon">
-            <span>👤</span>
-            <input type="text" id="customerSelectInput" list="customerDataList" placeholder="Select Customer...">
-            <datalist id="customerDataList"></datalist>
-          </div>
-
-          <div style="display:flex; gap:10px; margin-bottom: 15px;">
-             <div class="modern-input-group" style="flex:1;">
-                <label>Date</label>
-                <input type="date" id="entryDate">
-             </div>
-             <div class="modern-input-group" style="flex:1;">
-                <label>Shift</label>
-                <select id="shift">
-                  <option value="Subah">Morning</option>
-                  <option value="Shaam">Evening</option>
-                </select>
-             </div>
-          </div>
-
-          <div class="modern-input-group" style="margin-bottom: 10px;">
-            <label>Quantity (Liter/ml)</label>
-            <input type="text" id="matra" placeholder="e.g. 0.5 or 1 L">
-          </div>
-
-          <div style="display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding-bottom: 5px;">
-            <button type="button" class="qty-pill" onclick="document.getElementById('matra').value='250 ml'">250ml</button>
-            <button type="button" class="qty-pill" onclick="document.getElementById('matra').value='500 ml'">500ml</button>
-            <button type="button" class="qty-pill" onclick="document.getElementById('matra').value='1 L'">1L</button>
-            <button type="button" class="qty-pill" onclick="document.getElementById('matra').value='2 L'">2L</button>
-            <button type="button" class="qty-pill" onclick="document.getElementById('matra').value='5 L'">5L</button>
-            <button type="button" class="qty-pill" style="color:var(--danger-red); border-color:#fca5a5; background:#fee2e2;" onclick="document.getElementById('matra').value='Gap 🚫'">Gap</button>
-          </div>
-
-          <div style="display:flex; gap:10px; margin-bottom: 15px;">
-             <div class="modern-input-group" style="flex:1;">
-                <label>Rate (₹ per L)</label>
-                <input type="number" id="rate" value="60" min="0" step="1">
-             </div>
-             <div class="modern-input-group" style="flex:1;">
-                <label>Product</label>
-                <select id="product">
-                  <option value="Doodh">Milk</option>
-                  <option value="Ghee">Ghee</option>
-                  <option value="Mahi">Mahi</option>
-                </select>
-             </div>
-          </div>
-
-          <div style="display:flex; gap:10px; margin-bottom: 20px;">
-             <div class="modern-input-group" style="flex: 2;">
-               <label>Notes</label>
-               <input type="text" id="remarks" placeholder="Remarks (Optional)">
-             </div>
-             <button type="button" style="flex: 1; margin-top:20px; background: #f4f5f8; border: 1px solid var(--border-color); border-radius: 10px; color: var(--primary-blue); font-weight: bold; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px;" onclick="alert('Photo upload feature is coming soon!')">
-               <span style="font-size: 1.1rem;">📷</span> 
-               <span style="font-size:0.7rem;">Photo</span>
-             </button>
-          </div>
-
-          <div class="modern-input-group" style="margin-bottom: 15px;">
-            <label>Payment</label>
-            <select id="payment" onchange="toggleEntryPayMethod()">
-              <option value="unpaid">Udhaar ❌</option>
-              <option value="paid">Paid ✅</option>
-            </select>
-          </div>
-          
-          <div id="entryPayMethodDiv" style="display:none; margin-bottom:15px;">
-            <div class="pay-method-group">
-              <button class="pay-btn active" id="eBtnCash" onclick="setPaymentMode('cash', 'entry')">💵 Cash</button>
-              <button class="pay-btn" id="eBtnOnline" onclick="setPaymentMode('online', 'entry')">📱 Online</button>
-            </div>
-          </div>
-
-          <button class="btn-add-entry btn-success" onclick="saveRecord()" id="btnSaveEntry">Save Entry</button>
-        </div>
-      </div>
-
-      <div class="page" id="pageKhata">
-        <div id="historyListView">
-          <input type="text" class="search-bar" placeholder="🔍 Search History..." id="historySearch" oninput="debounceRenderHistoryList()" style="margin-top:15px;">
-          <div class="section-header" style="margin-bottom:15px;">
-            <h3 style="color: var(--text-main);">Sabhi Grahak</h3>
-          </div>
-          <div id="historyCustList"></div>
-        </div>
-        
-        <div id="historyDetailView" style="display:none; padding-top:10px;">
-          <button onclick="backToHistoryList()" style="background:none; border:none; color:var(--primary-blue); font-size:1.1rem; font-weight:bold; margin-bottom:15px; cursor:pointer; padding:0;">⬅️ Back to List</button>
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:10px;">
-            <h2 id="histCustName" style="margin:0; color:var(--primary-blue); font-size:1.4rem;">Customer Name</h2>
-            <div style="display:flex; gap:6px; flex-wrap:wrap; justify-content: flex-end;">
-              <button onclick="shareWhatsAppBill()" style="background:#25D366; color:white; border:none; padding:8px 10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size: 0.8rem;">💬 Msg</button>
-              <button onclick="shareBillImage()" style="background:#0ea5e9; color:white; border:none; padding:8px 10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size: 0.8rem;">📲 Pic</button>
-              <button onclick="showBillImageModal()" style="background:#f59e0b; color:white; border:none; padding:8px 10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size: 0.8rem;">🖼️ View</button>
-              <button onclick="downloadBillPDF()" style="background:#10b981; color:white; border:none; padding:8px 10px; border-radius:6px; font-weight:bold; cursor:pointer; font-size: 0.8rem;">📄 PDF</button>
-            </div>
-          </div>
-          <div class="cust-nav-tabs">
-            <div class="cust-nav-tab active" id="tDet" onclick="openCustTab('detail')">📄 Detail</div>
-            <div class="cust-nav-tab" id="tCal" onclick="openCustTab('calendar')">🗓️ Calendar</div>
-            <div class="cust-nav-tab" id="tPay" onclick="openCustTab('pay')">💳 Pay</div>
-          </div>
-          <div id="custTabContent"></div>
-        </div>
-      </div>
-
-      <div class="page" id="pageCustomers">
-        <div class="form-card" id="customerFormArea" style="margin-top:20px; background:var(--card-bg); padding:20px; border-radius:16px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-          
-          <div style="display: flex; align-items: center; margin-bottom: 20px;">
-            <button onclick="resetCustomerForm(); switchTab(0);" style="background:none; border:none; font-size:1.5rem; color:var(--primary-blue); cursor:pointer; padding:0; margin-right:10px;">←</button>
-            <h3 id="custFormTitle" style="margin: 0; color: var(--text-main); font-size: 1.3rem;">Add New Seller</h3>
-          </div>
-          
-          <input type="hidden" id="editCustId" value="">
-
-          <div class="input-with-icon">
-            <span>👤</span>
-            <input type="text" id="cName" placeholder="Name">
-          </div>
-          
-          <div class="input-with-icon">
-            <span>📞</span>
-            <input type="tel" id="cPhone" placeholder="Phone" maxlength="10" pattern="[0-9]{10}">
-          </div>
-          
-          <div class="input-with-icon">
-            <span>📍</span>
-            <textarea id="cAddress" rows="1" placeholder="Address"></textarea>
-          </div>
-
-          <div style="margin-top: 25px; border-top: 1px solid var(--border-color); padding-top: 20px;">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-              <strong style="font-size: 1.1rem; color: var(--text-main);">Auto Add Entry</strong>
-              <label class="switch">
-                <input type="checkbox" id="cAutoToggle" onchange="toggleAutoFields()">
-                <span class="slider round"></span>
-              </label>
-            </div>
-
-            <div id="cAutoFields" style="display: none; background: #f4f5f8; padding: 15px; border-radius: 12px; margin-bottom: 15px;">
-              <div style="display:flex; gap:10px; margin-bottom: 10px;">
-                <div class="modern-input-group" style="flex:1;">
-                  <label>Shift Time</label>
-                  <select id="cAutoShift">
-                    <option value="Subah">Morning</option>
-                    <option value="Shaam">Evening</option>
-                  </select>
-                </div>
-                <div class="modern-input-group" style="flex:1;">
-                  <label>Product</label>
-                  <select id="cAutoProduct">
-                    <option value="Doodh">Milk</option>
-                    <option value="Ghee">Ghee</option>
-                    <option value="Mahi">Mahi</option>
-                  </select>
-                </div>
-              </div>
-              
-              <div style="display:flex; gap:10px;">
-                <div class="modern-input-group" style="flex:1;">
-                  <label>Price per Unit (₹)</label>
-                  <input type="number" id="cAutoRate" value="60" min="0" step="1">
-                </div>
-                <div class="modern-input-group" style="flex:1;">
-                  <label>Quantity (L)</label>
-                  <div style="position:relative;">
-                    <span style="position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:1.1rem; color:var(--primary-blue);">💧</span>
-                    <input type="text" id="cAutoMatra" placeholder="1.0" style="padding-left:35px;">
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <button class="btn-add-entry btn-success" id="saveCustBtn" onclick="saveCustomerBtn()" style="margin-top: 10px;">ADD SELLER</button>
-          <button class="btn-add-entry" id="cancelEditBtn" onclick="resetCustomerForm()" style="margin-top: 10px; background-color:var(--border-color); color:var(--text-main); display:none; box-shadow:none;">Cancel Edit</button>
-        </div>
-        
-        <div class="section-header" style="margin-top:25px;">
-          <h3 style="color: var(--text-main);">Grahak List</h3>
-        </div>
-        <div id="customerListDiv"></div>
-      </div>
-    </div>
-  </div>
-
-  <div class="bottom-nav no-print">
-    <div class="nav-item active" id="tabHome" onclick="switchTab(0)">
-      🏠<br><span id="lblNavHome">Home</span>
-    </div>
-    <div class="nav-item" id="tabEntry" onclick="switchTab(1)">
-      📝<br><span id="lblNavEntry">Entry</span>
-    </div>
-    <div class="nav-item" id="tabKhata" onclick="switchTab(2)">
-      ⏱️<br><span id="lblNavHist">History</span>
-    </div>
-    <div class="nav-item" id="tabCust" onclick="switchTab(3)">
-      👤<br><span id="lblNavCust">Grahak</span>
-    </div>
-  </div>
-
-  <div id="autoEntryModal" class="modal-overlay no-print">
-    <div class="modal-content" style="max-height: 85vh;">
-      <span class="close-btn" onclick="document.getElementById('autoEntryModal').style.display='none'; isModalOpen=false;" style="float:right; font-size:1.5rem; cursor:pointer;">❌</span>
-      <h3 style="margin-top:0; color:var(--primary-blue);">🤖 Auto-Entry System</h3>
-      <div style="background: var(--light-bg); padding: 15px; border-radius: 10px; margin-bottom: 15px;">
-        <div class="form-group">
-          <input type="text" id="autoSubName" list="customerDataList" placeholder="Grahak ka naam...">
-        </div>
-        <div style="display:flex; gap:10px;">
-          <div class="form-group" style="flex:1;">
-            <select id="autoSubShift">
-              <option value="Subah">Morning</option>
-              <option value="Shaam">Evening</option>
-            </select>
-          </div>
-          <div class="form-group" style="flex:1;">
-            <select id="autoSubProduct">
-              <option value="Doodh">Milk</option>
-              <option value="Ghee">Ghee</option>
-              <option value="Mahi">Mahi</option>
-            </select>
-          </div>
-        </div>
-        <div style="display:flex; gap:10px;">
-          <div class="form-group" style="flex:1;">
-            <input type="text" id="autoSubMatra" placeholder="Matra (1.5 L)">
-          </div>
-          <div class="form-group" style="flex:1;">
-            <input type="number" id="autoSubRate" value="60">
-          </div>
-        </div>
-        <button class="btn-add-entry" id="btnSaveAutoSub" onclick="saveSubscription()">➕ Set Auto-Entry</button>
-      </div>
-      <h4>Chalu Auto-Entries (Active)</h4>
-      <div id="subscriptionListDiv"></div>
-    </div>
-  </div>
-
-  <div id="payModal" class="modal-overlay no-print">
-    <div class="modal-content">
-      <span class="close-btn" onclick="closePayModal()" style="float:right; font-size:1.5rem; cursor:pointer;">❌</span>
-      <h3 style="margin-top:0;">💳 Payment Collect</h3>
-      <div id="modalStep1">
-        <input type="text" class="search-bar" placeholder="🔍 Search naam..." id="paySearchInput" oninput="renderPayModalList()">
-        <ul class="khata-list" id="payCustomerList" style="max-height: 50vh; overflow-y:auto;"></ul>
-      </div>
-      <div id="modalStep2" style="display:none; text-align:center;">
-        <h3 id="qrCustomerName" style="margin:0; font-size:1.5rem;">Name</h3>
-        <div style="font-size: 2.5rem; color: var(--primary-blue); font-weight: bold; margin: 15px 0;" id="qrAmount">Rs 0</div>
-        <div class="pay-method-group">
-          <button class="pay-btn active" id="mBtnOnline" onclick="setPaymentMode('online', 'modal')">📱 Online</button>
-          <button class="pay-btn" id="mBtnCash" onclick="setPaymentMode('cash', 'modal')">💵 Cash</button>
-        </div>
-        <div class="visual-area" id="modalVisualArea"></div>
-        <p id="modalInstructionTxt" style="font-size: 0.9rem; font-weight:bold;"></p>
-        <button class="btn-add-entry btn-success" style="margin-top: 15px;" onclick="confirmPayment('modal')">✅ Confirm Received</button>
-        <button class="btn-add-entry" style="background:var(--border-color); color:var(--text-main); margin-top:10px; box-shadow:none;" onclick="backToPayList()">⬅️ Back</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="editEntryModal" class="modal-overlay no-print">
-    <div class="modal-content">
-      <span onclick="closeEditEntryModal()" style="float:right; font-size:1.5rem; cursor:pointer;">❌</span>
-      <h3>✏️ Edit Entry</h3>
-      <input type="hidden" id="editEntryId">
-      
-      <div style="display:flex; gap:10px; margin-bottom: 10px;">
-        <div class="modern-input-group" style="flex:1;">
-          <label>Date:</label>
-          <input type="date" id="edDate">
-        </div>
-        <div class="modern-input-group" style="flex:1;">
-          <label>Item:</label>
-          <select id="edProduct">
-            <option value="Doodh">Milk</option>
-            <option value="Ghee">Ghee</option>
-            <option value="Mahi">Mahi</option>
-          </select>
-        </div>
-      </div>
-      
-      <div style="display:flex; gap:10px; margin-bottom: 10px;">
-        <div class="modern-input-group" style="flex:1;">
-          <label>Matra:</label>
-          <input type="text" id="edMatra">
-        </div>
-        <div class="modern-input-group" style="flex:1;">
-          <label>Rate:</label>
-          <input type="number" id="edRate" min="0" step="1">
-        </div>
-      </div>
-      
-      <div class="modern-input-group" style="margin-bottom: 15px;">
-        <label>Remarks</label>
-        <input type="text" id="edRemarks" placeholder="Remarks">
-      </div>
-
-      <div class="modern-input-group" style="margin-bottom: 10px;">
-        <label>Payment Status:</label>
-        <select id="edPayment" onchange="toggleEditPayMode()">
-          <option value="unpaid">Udhaar</option>
-          <option value="paid">Paid</option>
-        </select>
-      </div>
-      
-      <div class="modern-input-group" id="edPayModeGroup" style="display:none; margin-bottom: 15px;">
-        <label>Mode:</label>
-        <select id="edPayMode">
-          <option value="cash">Cash</option>
-          <option value="online">Online</option>
-        </select>
-      </div>
-      
-      <button class="btn-add-entry btn-success" id="btnUpdateEntry" onclick="saveEditedEntry()">Update Entry</button>
-      <button class="btn-add-entry" style="background:var(--danger-red); margin-top:10px;" onclick="deleteEditedEntry()">🗑️ Delete Entry</button>
-    </div>
-  </div>
-
-  <div id="settingsModal" class="modal-overlay no-print">
-    <div class="modal-content">
-      <span onclick="closeSettingsModal()" style="float:right; font-size:1.5rem; cursor:pointer;">❌</span>
-      <h3>⚙️ App Settings</h3>
-      <div class="form-group">
-        <label>Upload QR Image:</label>
-        <input type="file" id="qrUploadInput" accept="image/*" onchange="handleQRUpload(this)">
-      </div>
-      <div id="qrPreviewArea" style="text-align:center; margin:10px 0;">
-        <img id="qrPreviewImg" src="" style="max-width:150px; display:none;">
-      </div>
-      <button class="btn-add-entry btn-success" style="margin-top: 15px;" onclick="exportCSV()">📊 Download Excel (CSV)</button>
-      <button class="btn-add-entry" style="background:var(--border-color); color:var(--text-main); box-shadow:none; margin-top: 10px;" onclick="closeSettingsModal()">Close</button>
-    </div>
-  </div>
-
-  <div id="imageModal">
-      <div class="modal-text">👆 <br> <b>Long Press the bill to Save/Share</b></div>
-      <img id="modalImage" alt="Invoice Image">
-      <button class="btn-close-modal" onclick="closeModal()">Close</button>
-  </div>
-
-  <div id="billArea" style="position: fixed; left: 0; top: 0; opacity: 0; pointer-events: none; z-index: -9999; width: 800px; background: white; padding: 30px; color: black;">
-    <div style="text-align: center; border-bottom: 4px solid #0b3d91; padding-bottom: 20px; margin-bottom: 30px;">
-      <h1 style="font-size: 2.5rem; margin: 0; color: #0b3d91;">SITARAM DAIRY</h1>
-      <p style="margin:5px 0; font-weight:bold; font-size: 1.2rem;">100% Pure & Hygienic Milk</p>
-      <p style="margin:5px 0;">📞 7470701427 | 8963974599</p>
-    </div>
-    <div style="font-size: 1.2rem; display: flex; justify-content: space-between; margin-bottom: 20px;">
-      <div>
-        <p><b>Customer:</b> <span id="bName"></span></p>
-        <p><b>Month:</b> <span id="bMonth"></span></p>
-      </div>
-    </div>
-    <table border="1" width="100%" cellspacing="0" cellpadding="10" style="border-collapse: collapse; margin-top: 20px; font-size: 1.1rem; border-color: #ddd;">
-      <thead style="background-color: #f0f4f8;">
-        <tr>
-          <th style="text-align: left;">Date</th>
-          <th style="text-align: left;">Item</th>
-          <th style="text-align: left;">Qty</th>
-          <th style="text-align: right;">Amount (Rs)</th>
-        </tr>
-      </thead>
-      <tbody id="billTable"></tbody>
-    </table>
-    <div style="text-align:right; margin-top:20px; border-top: 2px solid #ccc; padding-top: 15px;" id="bTotal"></div>
-    <div style="margin-top: 60px; display: flex; justify-content: space-between;">
-      <div style="text-align: center;">
-        <hr style="width: 150px; border-top: 2px solid #000;">
-        <p>Customer Sign</p>
-      </div>
-      <div style="text-align: center;">
-        <h3 style="margin: 0; color: #0b3d91;">Mukesh Soni</h3>
-        <hr style="width: 150px; border-top: 2px solid #000;">
-        <p>Authorized Sign</p>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    // --- 1. FIREBASE CONFIGURATION ---
-    const firebaseConfig = {
-      apiKey: "AIzaSyCrpQiuWHivJ--t7IyNzycy6PUi8NYhw10",
-      authDomain: "sitaram-dairy.firebaseapp.com",
-      projectId: "sitaram-dairy",
-      storageBucket: "sitaram-dairy.firebasestorage.app",
-      messagingSenderId: "135965768932",
-      appId: "1:135965768932:web:e8420181bdd9efcbb6c0f1"
-    };
-
-    function parseQuantity(m, rate) {
-      m = (m || '').toLowerCase().trim();
-      if (m === 'gap' || m.includes('chhutti') || m.includes('🚫')) {
-          return { dispM: 'Aaj ka Gap 🚫', amount: 0 };
-      }
-      
-      let numStr = m.match(/^\d*\.?\d+/);
-      if (!numStr) return null;
-      
-      let num = parseFloat(numStr[0]);
-      if (isNaN(num) || num < 0) return null;
-      
-      let suf = 'L';
-      if (m.includes('ml')) {
-          suf = 'ml';
-      } else if (m.includes('kg')) {
-          suf = 'kg';
-      } else if (m.includes('g')) {
-          suf = 'g';
-      }
-      
-      let amt = (suf === 'ml' || suf === 'g') ? ((num / 1000) * rate) : (num * rate);
-      return { dispM: num + ' ' + suf, amount: parseFloat(amt.toFixed(2)) }; 
-    }
-
-    function safe(text) {
-      if (!text) return '';
-      let str = text.toString().replace(/[<>&"'/]/g, c => ({
-          '<':'&lt;',
-          '>':'&gt;',
-          '&':'&amp;',
-          '"':'&quot;', 
-          "'": '&#39;', 
-          '/': '&#x2F;'
-      }[c]));
-      
-      if (str.startsWith('=') || str.startsWith('+') || str.startsWith('-') || str.startsWith('@')) { 
-          str = "'" + str; 
-      }
-      return str;
-    }
-
-    function parseDate(ds) {
-      if (!ds) return null;
-      if (/^\d{4}-\d{2}-\d{2}$/.test(ds)) { 
-          let p = ds.split('-'); 
-          return { y: parseInt(p[0]), m: parseInt(p[1])-1, d: parseInt(p[2]) }; 
-      }
-      let p = ds.split(/[\/\-]/);
-      if (!p[0] || !p[1] || !p[2]) return null;
-      return { y: parseInt(p[2]), m: parseInt(p[1])-1, d: parseInt(p[0]) };
-    }
-
-    function safeSetStorage(key, data) {
-      try { 
-          localStorage.setItem(key, data); 
-      } catch(e) { 
-          alert("Storage Full! Backup le lo ⚠️"); 
-      }
-    }
-
-    // --- 2. DATA INITIALIZATION & GLOBALS ---
-    let dairyRecords = JSON.parse(localStorage.getItem('sitaramRecords')) || [];
-    let customersData = JSON.parse(localStorage.getItem('sitaramCusts')) || [];
-    let subscriptions = JSON.parse(localStorage.getItem('sitaramSubs')) || [];
-    let savedQR = localStorage.getItem('sitaramCustomQR') || null;
-    
-    let monthlyCache = {}; 
-    let recordMap = {}; 
-    let viewMonth = new Date().getMonth(); 
-    let viewYear = new Date().getFullYear();
-    let custViewMonth = viewMonth; 
-    let custViewYear = viewYear;
-    let curHistName = ''; 
-    let curPayName = ''; 
-    let activePaymentMode = 'online'; 
-    let currentLang = 'hi';
-    
-    let milkChartInstance = null; 
-    let chartLoaded = false;
-    let searchTimeoutHome, histSearchTimeout, syncTimeout;
-    let pendingSync = false; 
-    let currentUser = null; 
-    let isModalOpen = false; 
-
-    window.addEventListener('popstate', function(event) {
-        if (isModalOpen) {
-            closeModal(); 
-            closeEditEntryModal(); 
-            closePayModal(); 
-            closeSettingsModal();
-            document.getElementById('autoEntryModal').style.display = 'none'; 
-            isModalOpen = false;
-        }
-    });
-
-    window.addEventListener('offline', () => showMsg("Phone Offline Hai!", "error"));
-    window.addEventListener('online', triggerSync);
-
-    function buildIndex() {
-      recordMap = {};
-      dairyRecords.forEach(r => { 
-          if (!recordMap[r.name]) {
-              recordMap[r.name] = []; 
-          }
-          recordMap[r.name].push(r); 
-      });
-    }
-    buildIndex(); 
-
-    window.onload = function() {
-      let d = new Date(); 
-      d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
-      document.getElementById('entryDate').value = d.toISOString().split('T')[0];
-      
-      if(localStorage.getItem('darkMode') === 'true') {
-          document.body.classList.add('dark-mode');
-      }
-      
-      if (!firebase.apps.length) {
-          firebase.initializeApp(firebaseConfig);
-      }
-      
-      firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-        .then(() => {
-            return firebase.auth().getRedirectResult();
-        })
-        .then((result) => {
-            if (result && result.user) { 
-                showMsg("Welcome, " + safe(result.user.displayName) + "!", "success"); 
-            }
-        })
-        .catch((error) => {
-            if(error.code !== 'auth/redirect-cancelled-by-user') {
-                alert("Login Error: " + error.message);
-            }
-        });
-      
-      firebase.auth().onAuthStateChanged((user) => {
-        if (user) { 
-            currentUser = user; 
-            document.getElementById('loginScreen').style.display = 'none'; 
-            initUserData(); 
-        } else { 
-            currentUser = null; 
-            document.getElementById('loginScreen').style.display = 'flex'; 
-        }
-      });
-      
-      if (savedQR) { 
-          document.getElementById('qrPreviewImg').src = savedQR; 
-          document.getElementById('qrPreviewImg').style.display = 'inline-block'; 
-      }
-    };
-
-    function getUserRef() {
-      if (!currentUser) return null; 
-      return firebase.database().ref('users/' + currentUser.uid);
-    }
-
-    function initUserData() {
-      document.getElementById('cloudStatus').innerText = "☁️ Loading..."; 
-      let ref = getUserRef(); 
-      if(!ref) return;
-      
-      ref.get().then((snapshot) => {
-        if (snapshot.exists()) {
-          let cloudData = snapshot.val(); 
-          let cloudTime = cloudData.lastUpdated || 0; 
-          let localTime = parseInt(localStorage.getItem('sitaramLastUpdated')) || 0;
-          
-          if (cloudTime > localTime) {
-            dairyRecords = cloudData.records || []; 
-            customersData = cloudData.custs || []; 
-            subscriptions = cloudData.subs || []; 
-            savedQR = cloudData.qr || null;
+    <div class="app-body">
+        <div class="slide-wrapper" id="slideWrapper">
             
-            safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords)); 
-            safeSetStorage('sitaramCusts', JSON.stringify(customersData)); 
-            safeSetStorage('sitaramSubs', JSON.stringify(subscriptions));
-            if(savedQR) safeSetStorage('sitaramCustomQR', savedQR); 
-            safeSetStorage('sitaramLastUpdated', cloudTime);
-          } else if (localTime > cloudTime) {
-              triggerSync();
-          }
-        } else { 
-            if (dairyRecords.length > 0 || customersData.length > 0) {
-                triggerSync();
-            } 
-        }
-        buildIndex(); 
-        document.getElementById('cloudStatus').innerText = "☁️ Synced"; 
-        document.getElementById('cloudStatus').style.color = "#a7f3d0";
-        runAutoEntries(); 
-        updateMonthDisplay(); 
-        refreshAll();
-      }).catch((error) => {
-        document.getElementById('cloudStatus').innerText = "☁️ Offline Mode"; 
-        document.getElementById('cloudStatus').style.color = "#fef08a";
-        buildIndex(); 
-        runAutoEntries(); 
-        updateMonthDisplay(); 
-        refreshAll();
-      });
-    }
+            <div class="page" id="page0">
+                <div class="main-card">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <button onclick="changeMonth(-1)" class="btn-primary" aria-label="Previous Month" style="width:auto; padding:5px 15px;">&lt;</button>
+                        <h3 id="dashMonth" style="margin:0; color:var(--primary-blue);">Month</h3>
+                        <button onclick="changeMonth(1)" class="btn-primary" aria-label="Next Month" style="width:auto; padding:5px 15px;">&gt;</button>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-box"><small>Total Milk</small><br><b id="dashMilk">0 L</b></div>
+                        <div class="stat-box"><small>Total Due</small><br><b id="dashDue" style="color:var(--danger-red);">₹ 0</b></div>
+                    </div>
+                    <canvas id="milkChart" style="width:100%; max-height:220px;"></canvas>
+                </div>
+            </div>
 
-    function googleLogin() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-        .then(() => {
-          firebase.auth().signInWithRedirect(provider);
-        });
-    }
-    
-    function lockApp() { 
-        if (confirm("Logout karna chahte hain?")) {
-            firebase.auth().signOut().then(() => closeSidebar()); 
-        }
-    }
+            <div class="page" id="page1">
+                <div class="main-card">
+                    <button class="btn-primary" style="margin-bottom: 15px; background:var(--warning-orange);" onclick="openBulkModal()"><i class="fas fa-calendar-alt"></i> Open Bulk Entry</button>
+                    <hr style="border:0; border-top:1px solid var(--border-color); margin-bottom:15px;">
+                    <div class="input-group">
+                        <label>Customer (Single Entry)</label>
+                        <select id="eCust"><option value="">Select Customer...</option></select>
+                    </div>
+                    <div class="flex-row">
+                        <div class="input-group flex-1"><label>Date</label><input type="date" id="eDate"></div>
+                        <div class="input-group flex-1"><label>Shift</label>
+                            <select id="eShift"><option value="Morning">Morning</option><option value="Evening">Evening</option></select>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label>Quantity (L/ml)</label>
+                        <input type="text" inputmode="decimal" id="eQty" placeholder="e.g., 7 L or 500 ml">
+                        <div style="margin-top:5px;">
+                            <button class="qty-pill" onclick="document.getElementById('eQty').value='500 ml'">500 ml</button>
+                            <button class="qty-pill" onclick="document.getElementById('eQty').value='1 L'">1 L</button>
+                            <button class="qty-pill" onclick="document.getElementById('eQty').value='2 L'">2 L</button>
+                            <button class="qty-pill" style="background:#fee2e2; color:var(--danger-red);" onclick="document.getElementById('eQty').value='Gap 🚫'">Gap</button>
+                        </div>
+                    </div>
 
-    function updateMonthDisplay() { 
-        const mNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]; 
-        document.getElementById('currentMonthText').innerText = `${mNames[viewMonth]} ${viewYear}`; 
-    }
-    
-    function prevMonth() { 
-        viewMonth--; 
-        if (viewMonth < 0) { 
-            viewMonth = 11; 
-            viewYear--; 
-        } 
-        updateMonthDisplay(); 
-        clearCache(); 
-        refreshAll(); 
-    }
-    
-    function nextMonth() { 
-        viewMonth++; 
-        if (viewMonth > 11) { 
-            viewMonth = 0; 
-            viewYear++; 
-        } 
-        updateMonthDisplay(); 
-        clearCache(); 
-        refreshAll(); 
-    }
+                    <div class="flex-row">
+                        <div class="input-group flex-1">
+                            <label>Product</label>
+                            <select id="eProd" onchange="autoRate('e')">
+                                <option value="Doodh">Milk</option>
+                                <option value="Ghee">Ghee</option>
+                                <option value="Dahi">Dahi</option>
+                            </select>
+                        </div>
+                        <div class="input-group flex-1"><label>Rate (₹)</label><input type="number" inputmode="decimal" id="eRate" value="60"></div>
+                    </div>
 
-    function renderCharts() {
-      if (!document.getElementById('milkChart')) return;
-      const ctx = document.getElementById('milkChart').getContext('2d');
-      
-      let mRecs = getFilteredRecords(); 
-      let dailyMilk = {}; 
-      let daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
-      
-      for(let i = 1; i <= daysInMonth; i++) {
-          dailyMilk[i] = 0;
-      }
-      
-      mRecs.forEach(r => {
-        if(r.product === 'Doodh' && !r.matra.includes('🚫')) {
-          let d = parseDate(r.date);
-          if(d && d.m === viewMonth && d.y === viewYear) { 
-              let numStr = r.matra.match(/\d*\.?\d+/); 
-              if(numStr) { 
-                  let v = parseFloat(numStr[0]); 
-                  if(r.matra.toLowerCase().includes('ml')) {
-                      v /= 1000; 
-                  }
-                  dailyMilk[d.d] += v; 
-              } 
-          }
-        }
-      });
-      
-      if (milkChartInstance) { 
-          milkChartInstance.destroy(); 
-      }
-      
-      milkChartInstance = new Chart(ctx, { 
-          type: 'bar', 
-          data: { 
-              labels: Object.keys(dailyMilk), 
-              datasets: [{ 
-                  label: 'Milk (Liters)', 
-                  data: Object.values(dailyMilk), 
-                  backgroundColor: 'rgba(21, 101, 192, 0.6)', 
-                  borderColor: 'rgba(21, 101, 192, 1)', 
-                  borderWidth: 1, 
-                  borderRadius: 4 
-              }] 
-          }, 
-          options: { 
-              responsive: true, 
-              scales: { y: { beginAtZero: true } } 
-          } 
-      });
-    }
+                    <div class="input-group">
+                        <label>Payment</label>
+                        <select id="ePay">
+                            <option value="unpaid">Udhaar ❌</option>
+                            <option value="paid">Paid ✅</option>
+                            <option value="gap" style="display:none;">Gap 🚫</option>
+                        </select>
+                    </div>
+                    <button class="btn-primary btn-success" id="btnSaveEntry" onclick="saveEntry()"><i class="fas fa-save"></i> Save Entry</button>
+                </div>
+            </div>
 
-    function toggleAutoFields() { 
-        let isChecked = document.getElementById('cAutoToggle').checked; 
-        document.getElementById('cAutoFields').style.display = isChecked ? 'block' : 'none'; 
-    }
-    
-    function openAutoEntryModal() { 
-        if(isModalOpen) return; 
-        isModalOpen = true; 
-        updateDropdown(); 
-        renderSubscriptions(); 
-        document.getElementById('autoEntryModal').style.display = 'flex'; 
-        history.pushState(null, null, "#modal");
-    }
-    
-    function saveSubscription() {
-      let btn = document.getElementById('btnSaveAutoSub'); 
-      btn.disabled = true; 
-      
-      let n = document.getElementById('autoSubName').value.trim(); 
-      let shift = document.getElementById('autoSubShift').value; 
-      let product = document.getElementById('autoSubProduct').value; 
-      let rawM = document.getElementById('autoSubMatra').value; 
-      let rate = parseFloat(document.getElementById('autoSubRate').value);
-      
-      if (!n || n.length < 2) { 
-          btn.disabled = false; 
-          return alert("Sahi Grahak ka naam bharein!"); 
-      } 
-      
-      if(isNaN(rate)) { 
-          btn.disabled = false; 
-          return alert("Rate bharein!"); 
-      }
-      
-      let parsed = parseQuantity(rawM, rate); 
-      if(!parsed) { 
-          btn.disabled = false; 
-          return alert("Invalid Matra!"); 
-      } 
-      
-      n = saveCustomerSilent(n);
-      
-      let uid = window.crypto && crypto.randomUUID ? crypto.randomUUID() : 'id_' + Date.now() + Math.random().toString(36).substr(2, 9);
-      
-      let existing = subscriptions.find(s => s.name === n && s.shift === shift && s.product === product);
-      if(existing) { 
-          existing.matra = parsed.dispM; 
-          existing.rate = rate; 
-          existing.amount = parsed.amount; 
-          showMsg("Auto-Entry Updated!", "success"); 
-      } else { 
-          subscriptions.push({ 
-              id: uid, 
-              name: n, 
-              shift: shift, 
-              product: product, 
-              matra: parsed.dispM, 
-              rate: rate, 
-              amount: parsed.amount 
-          }); 
-          showMsg("Auto-Entry Set!", "success"); 
-      }
-      
-      safeSetStorage('sitaramSubs', JSON.stringify(subscriptions)); 
-      triggerSync(); 
-      
-      document.getElementById('autoSubName').value = ''; 
-      document.getElementById('autoSubMatra').value = ''; 
-      renderSubscriptions();
-      
-      setTimeout(() => btn.disabled = false, 1000);
-    }
+            <div class="page" id="page2">
+                <div class="main-card">
+                    <div class="input-group"><input type="text" id="searchHist" placeholder="Search by Name or Phone..." oninput="debounceSearch()"></div>
+                    <div id="historyList"></div>
+                    <button id="btnLoadMoreHist" class="btn-primary" style="display:none; background:var(--light-bg); color:var(--primary-blue); border:1px solid var(--primary-blue);" onclick="loadMoreHistory()">Load More</button>
+                </div>
+            </div>
 
-    function deleteSubscription(id) { 
-        if(confirm("⚠️ Pukka Auto-Entry hatana hai?")) {
-            subscriptions = subscriptions.filter(s => s.id != id); 
-            safeSetStorage('sitaramSubs', JSON.stringify(subscriptions)); 
-            triggerSync(); 
-            renderSubscriptions(); 
-        } 
-    }
-    
-    function renderSubscriptions() {
-      let div = document.getElementById('subscriptionListDiv'); 
-      div.innerHTML = '';
-      
-      if(subscriptions.length === 0) { 
-          div.innerHTML = '<p style="text-align:center;">Koi active auto-entry nahi.</p>'; 
-          return; 
-      }
-      
-      let fragment = document.createDocumentFragment();
-      subscriptions.forEach(s => {
-        let isMorning = s.shift === 'Subah' || s.shift === 'Morning';
-        let icon = isMorning ? '#f59e0b' : '#3b82f6';
-        let shiftChar = isMorning ? 'M' : 'E';
+            <div class="page" id="page3">
+                <div class="main-card">
+                    <h3 style="margin-top:0;">Add New Seller</h3>
+                    <div class="input-group"><label>Name</label><input type="text" id="cName" placeholder="Full Name"></div>
+                    <div class="input-group"><label>Phone (10 Digits)</label><input type="tel" inputmode="numeric" id="cPhone" placeholder="Mobile Number" maxlength="10"></div>
+                    <button class="btn-primary" id="btnAddCust" onclick="addCustomer()"><i class="fas fa-user-plus"></i> Add Seller</button>
+                </div>
+                <div class="main-card">
+                    <h3 style="margin-top:0;">Customer List</h3>
+                    <div id="custList"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="settingsModal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;"><i class="fas fa-cog"></i> Settings & Backup</h3>
+            <p style="font-size:0.85rem; color:var(--text-muted);">Safeguard your data by exporting it to a JSON file, or restore a previous backup.</p>
+            <button class="btn-primary btn-success" style="margin-bottom:10px;" onclick="exportJSONBackup()"><i class="fas fa-download"></i> Download Backup (JSON)</button>
+            
+            <div class="input-group" style="margin-top:15px;">
+                <label>Restore Backup (Select JSON file)</label>
+                <input type="file" id="importJsonFile" accept=".json" style="padding:8px;">
+            </div>
+            <button class="btn-primary btn-warning" style="margin-bottom:15px;" onclick="importJSONBackup()"><i class="fas fa-upload"></i> Restore Backup</button>
+            <hr style="border:0; border-top:1px solid var(--border-color); margin-bottom:15px;">
+            <button class="btn-primary" style="background:#6b7280;" onclick="closeModal('settingsModal')">Close Settings</button>
+        </div>
+    </div>
+
+    <div class="modal" id="bulkEntryModal">
+        <div class="modal-content">
+            <h3 style="margin-top:0;">📅 Bulk Entry</h3>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; background:var(--light-bg); padding:10px; border-radius:8px;">
+                <button onclick="changeBulkMonth(-1)" class="btn-primary" style="width:auto; padding:5px 15px;">&lt;</button>
+                <b id="bMonthTxt" style="color:var(--primary-blue);">Month</b>
+                <button onclick="changeBulkMonth(1)" class="btn-primary" style="width:auto; padding:5px 15px;">&gt;</button>
+            </div>
+            
+            <div class="input-group">
+                <label>Customer</label>
+                <select id="bCust" onchange="loadBulkData()"><option value="">Select Customer...</option></select>
+            </div>
+            
+            <div class="flex-row">
+                <div class="input-group flex-1">
+                    <label>Product</label>
+                    <select id="bProd" onchange="autoRate('b'); loadBulkData();">
+                        <option value="Doodh">Milk</option>
+                        <option value="Ghee">Ghee</option>
+                        <option value="Dahi">Dahi</option>
+                    </select>
+                </div>
+                <div class="input-group flex-1"><label>Rate</label><input type="number" inputmode="decimal" id="bRate" value="60"></div>
+            </div>
+            <div class="input-group"><label>Default Quantity (L/ml)</label><input type="text" inputmode="decimal" id="bQty" value="1 L"></div>
+
+            <div class="bulk-tabs">
+                <div class="bulk-tab active morning" id="bTabM" onclick="setBulkShift('Morning')"><i class="fas fa-sun"></i> Morning</div>
+                <div class="bulk-tab" id="bTabE" onclick="setBulkShift('Evening')"><i class="fas fa-moon"></i> Evening</div>
+            </div>
+
+            <div class="bulk-grid" id="bulkGrid"></div>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px; font-size:0.8rem;">
+                <div><span style="display:inline-block;width:12px;height:12px;background:var(--success-green);border-radius:3px;margin-right:4px;"></span>Selected &nbsp; <span style="display:inline-block;width:12px;height:12px;background:#e0f2f1;border:1px solid var(--primary-blue);border-radius:3px;margin-right:4px;"></span>Paid</div>
+                <div style="font-weight:bold; color:var(--text-muted);" id="bulkSummary">M: 0 | E: 0</div>
+            </div>
+            
+            <div class="flex-row">
+                <button class="btn-primary btn-success flex-1" id="btnSaveBulk" onclick="saveBulkEntries()">Save Bulk</button>
+                <button class="btn-primary flex-1" style="background:#6b7280;" onclick="closeModal('bulkEntryModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="editEntryModal">
+        <div class="modal-content">
+            <h3>Edit Entry</h3>
+            <input type="hidden" id="editEntryId">
+            <div class="flex-row">
+                <div class="input-group flex-1"><label>Date</label><input type="date" id="editDate"></div>
+                <div class="input-group flex-1"><label>Shift</label>
+                    <select id="editShift"><option value="Morning">Morning</option><option value="Evening">Evening</option></select>
+                </div>
+            </div>
+            <div class="flex-row">
+                <div class="input-group flex-1">
+                    <label>Product</label>
+                    <select id="editProd" onchange="autoRate('edit')">
+                        <option value="Doodh">Milk</option>
+                        <option value="Ghee">Ghee</option>
+                        <option value="Dahi">Dahi</option>
+                    </select>
+                </div>
+                <div class="input-group flex-1"><label>Quantity (L/ml)</label><input type="text" inputmode="decimal" id="editQty"></div>
+            </div>
+            <div class="input-group"><label>Rate (₹)</label><input type="number" inputmode="decimal" id="editRate"></div>
+            <div class="input-group">
+                <label>Payment</label>
+                <select id="editPay">
+                    <option value="unpaid">Udhaar</option>
+                    <option value="paid">Paid</option>
+                    <option value="gap" style="display:none;">Gap</option>
+                </select>
+            </div>
+            <div class="flex-row">
+                <button class="btn-primary btn-success flex-1" onclick="updateEntry()">Update</button>
+                <button class="btn-primary flex-1" style="background:#6b7280;" onclick="closeModal('editEntryModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="editCustModal">
+        <div class="modal-content">
+            <h3>Edit Customer</h3>
+            <input type="hidden" id="editCustId">
+            <div class="input-group"><label>Name</label><input type="text" id="editCName"></div>
+            <div class="input-group"><label>Phone (10 Digits)</label><input type="tel" inputmode="numeric" id="editCPhone" maxlength="10"></div>
+            <div class="flex-row">
+                <button class="btn-primary btn-warning flex-1" onclick="updateCustomer()">Update</button>
+                <button class="btn-primary flex-1" style="background:#6b7280;" onclick="closeModal('editCustModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal" id="customConfirmModal">
+        <div class="modal-content" style="text-align:center;">
+            <h3 id="ccmTitle" style="margin-top:0;">Confirm Action</h3>
+            <p id="ccmMessage" style="color:var(--text-muted); margin-bottom:20px;">Are you sure?</p>
+            <div class="flex-row">
+                <button class="btn-primary flex-1" id="ccmBtnConfirm" style="background:var(--danger-red);">Confirm</button>
+                <button class="btn-primary flex-1" style="background:#6b7280;" onclick="closeModal('customConfirmModal')">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab(0)"><i class="fas fa-chart-line"></i><br>Dashboard</div>
+        <div class="nav-item" onclick="switchTab(1)"><i class="fas fa-plus-circle"></i><br>Entry</div>
+        <div class="nav-item" onclick="switchTab(2)"><i class="fas fa-history"></i><br>History</div>
+        <div class="nav-item" onclick="switchTab(3)"><i class="fas fa-users"></i><br>Grahak</div>
+    </div>
+
+    <div id="toast">Message</div>
+
+    <script>
+        // --- 1. CORE STATE & O(1) INDEXING ---
+        let records = [], customers = [];
+        let recordMap = {}, customerMap = {}; 
+        let curMonth = new Date().getMonth(), curYear = new Date().getFullYear();
+        const rates = { "Doodh": 60, "Ghee": 1000, "Dahi": 80 };
+        let chartInst = null, searchTimer, toastTimer;
+        let historyRenderLimit = 20;
+
+        // Bulk Entry State
+        let bMonth = curMonth, bYear = curYear, bShift = 'Morning';
+        let bSelected = { 'Morning': new Set(), 'Evening': new Set() };
+        let bPaidSet = new Set(); // Tracks paid entries in bulk to color them correctly
+
+        // Custom Confirm Callback
+        let confirmActionCallback = null;
+
+        // Security Utilities
+        const sanitize = (str) => { let d = document.createElement('div'); d.textContent = str; return d.innerHTML; };
         
-        let itemDiv = document.createElement('div'); 
-        itemDiv.className = 'khata-item';
-        itemDiv.innerHTML = `<div class="khata-avatar" style="background:${icon};">${shiftChar}</div><div class="khata-details"><b>${safe(s.name)}</b><small>${safe(s.matra)} @ Rs ${safe(s.rate)}</small></div><button class="khata-add-btn" style="background:#fee2e2; color:red;" onclick="deleteSubscription('${s.id}')">🗑️</button>`;
-        fragment.appendChild(itemDiv);
-      });
-      div.appendChild(fragment);
-    }
+        // Strict Date Validation
+        const isValidDate = (dStr) => {
+            let d = new Date(dStr);
+            return !isNaN(d.getTime()) && d.toISOString().split('T')[0] === dStr;
+        };
 
-    function runAutoEntries() {
-      let todayStr = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
-      if (localStorage.getItem('sitaramAutoRun') !== todayStr && subscriptions.length > 0) {
-        let added = 0;
-        subscriptions.forEach(sub => {
-          let uniqueEntryId = `${todayStr}_${sub.name}_${sub.shift}_${sub.product}`; 
-          if (!dairyRecords.some(r => r.id === uniqueEntryId)) {
-            dairyRecords.push({ 
-                id: uniqueEntryId, 
-                date: todayStr, 
-                name: sub.name, 
-                product: sub.product, 
-                shift: sub.shift, 
-                matra: sub.matra, 
-                rate: sub.rate, 
-                amount: sub.amount, 
-                payment: 'unpaid', 
-                payMode: null, 
-                payDate: null, 
-                remarks: '' 
-            }); 
-            added++;
-          }
-        });
-        if (added > 0) { 
-            buildIndex(); 
-            safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords)); 
-            triggerSync(); 
-            showMsg(added + " Auto Entries Added!", "success"); 
-        }
-        safeSetStorage('sitaramAutoRun', todayStr);
-      }
-    }
+        // CSV Formula Injection Prevention
+        const safeCSV = (str) => { 
+            if(!str) return '""'; 
+            let s = str.toString().trim().replace(/"/g, '""').replace(/[\n\r]+/g, ' '); 
+            return s.match(/^[=\+\-@]/) ? `"'${s}"` : `"${s}"`; 
+        };
+        const getUID = () => (typeof crypto.randomUUID === "function") ? crypto.randomUUID() : 'id_' + Date.now() + Math.random().toString(36).substr(2);
 
-    function manualRefresh() { 
-        if(confirm("Refresh karein?")) {
-            location.reload(); 
+        function buildIndex() {
+            recordMap = {}; customerMap = {};
+            customers.forEach(c => customerMap[c.id] = c); 
+            records.forEach(r => {
+                if(!recordMap[r.cid]) recordMap[r.cid] = [];
+                recordMap[r.cid].push(r);
+            });
         }
-    }
-    
-    function showMsg(msg, type) { 
-        let b = document.getElementById('toastBox'); 
-        b.innerText = msg; 
-        b.className = type === 'error' ? 'toast-error' : 'toast-success'; 
-        b.style.display = 'block'; 
-        b.style.animation = 'none'; 
-        void b.offsetWidth; 
-        b.style.animation = 'fadeInOut 3s'; 
-        setTimeout(() => b.style.display = 'none', 2900); 
-    }
-    
-    function triggerSync() {
-      if (!currentUser) return Promise.resolve(); 
-      pendingSync = true; 
-      clearTimeout(syncTimeout); 
-      document.getElementById('cloudStatus').innerText = "☁️ Saving...";
-      
-      return new Promise((resolve, reject) => {
-          syncTimeout = setTimeout(() => {
-            if(!navigator.onLine) { 
-                document.getElementById('cloudStatus').innerText = "☁️ Offline"; 
-                return resolve(); 
+
+        // --- 2. STORAGE & JSON BACKUP ---
+        function loadData() {
+            try {
+                records = JSON.parse(localStorage.getItem('kb_records')) || [];
+                customers = JSON.parse(localStorage.getItem('kb_cust')) || [];
+            } catch(e) {
+                records = []; customers = [];
+                showToast("Data Loading Error.", true);
             }
-            let now = Date.now(); 
-            safeSetStorage('sitaramLastUpdated', now); 
-            let ref = getUserRef();
-            if(ref) { 
-                ref.update({ 
-                    records: dairyRecords, 
-                    custs: customersData, 
-                    subs: subscriptions, 
-                    qr: savedQR || "", 
-                    lastUpdated: now 
-                })
-                .then(() => { 
-                    document.getElementById('cloudStatus').innerText = "☁️ Synced"; 
-                    document.getElementById('cloudStatus').style.color = "#a7f3d0"; 
-                    resolve(); 
-                })
-                .catch(() => { 
-                    showMsg("Sync Failed ❌", "error"); 
-                    reject(); 
-                }); 
+            buildIndex();
+        }
+        
+        function saveData() {
+            try {
+                localStorage.setItem('kb_records', JSON.stringify(records));
+                localStorage.setItem('kb_cust', JSON.stringify(customers));
+                buildIndex(); refreshAll();
+            } catch(e) {
+                if(e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED') {
+                    showToast("Storage Full! Download JSON Backup and clear data.", true);
+                }
             }
-          }, 1500);
-      });
-    }
-
-    function toggleDarkMode() { 
-        let isD = document.body.classList.toggle('dark-mode'); 
-        safeSetStorage('darkMode', isD); 
-        closeSidebar(); 
-    }
-    
-    function downloadBackup() { 
-        let b = new Blob([JSON.stringify({ 
-            records: dairyRecords, 
-            custs: customersData, 
-            subs: subscriptions, 
-            qr: savedQR 
-        })], { type: "application/json" }); 
-        let a = document.createElement('a'); 
-        a.href = URL.createObjectURL(b); 
-        a.download = "SitaramDairy_Backup.json"; 
-        a.click(); 
-        showMsg("Backup Downloaded!", "success"); 
-    }
-    
-    async function restoreBackup(input) {
-      if (input.files && input.files[0]) {
-        if(input.files[0].size > 5000000) return alert("File too large! Limits to 5MB."); 
-        
-        let r = new FileReader(); 
-        r.onload = async function(e) { 
-            try { 
-                let obj = JSON.parse(e.target.result); 
-                if (obj.records && obj.custs) { 
-                    if (confirm("Restore backup? Purana data jayega.")) { 
-                        safeSetStorage('sitaramRecords', JSON.stringify(obj.records)); 
-                        safeSetStorage('sitaramCusts', JSON.stringify(obj.custs)); 
-                        if(obj.subs) safeSetStorage('sitaramSubs', JSON.stringify(obj.subs)); 
-                        await triggerSync(); 
-                        location.reload(); 
-                    } 
-                } 
-            } catch (err) { 
-                alert("Invalid File."); 
-            } 
-        }; 
-        r.readAsText(input.files[0]);
-      }
-    }
-
-    function openSidebar() { 
-        document.getElementById('sidebarOverlay').style.display = 'block'; 
-        setTimeout(() => {
-            document.getElementById('sidebarOverlay').style.opacity = '1';
-        }, 10); 
-        document.getElementById('sidebar').style.left = '0'; 
-    }
-    
-    function closeSidebar() { 
-        document.getElementById('sidebarOverlay').style.opacity = '0'; 
-        document.getElementById('sidebar').style.left = '-280px'; 
-        setTimeout(() => {
-            document.getElementById('sidebarOverlay').style.display = 'none';
-        }, 300); 
-    }
-    
-    function toggleLanguage() { 
-        currentLang = currentLang === 'hi' ? 'en' : 'hi'; 
-        showMsg("Language Toggled", "success"); 
-        closeSidebar(); 
-    }
-    
-    function openSettingsModal() { 
-        if(isModalOpen) return; 
-        isModalOpen = true; 
-        document.getElementById('settingsModal').style.display = 'flex'; 
-        closeSidebar(); 
-        history.pushState(null, null, "#modal"); 
-    }
-    
-    function closeSettingsModal() { 
-        document.getElementById('settingsModal').style.display = 'none'; 
-        isModalOpen = false; 
-    }
-    
-    function handleQRUpload(input) {
-      if (input.files && input.files[0]) {
-        if(input.files[0].size > 2000000) { 
-            alert("Max 2MB image allowed!"); 
-            return; 
         }
-        let r = new FileReader(); 
-        r.onload = function(e) {
-          let img = new Image(); 
-          img.onload = function() {
-            let canvas = document.createElement('canvas'); 
-            let ctx = canvas.getContext('2d'); 
-            let w = img.width, h = img.height; 
-            if(w > 500) { 
-                h *= 500 / w; 
-                w = 500; 
+
+        function exportJSONBackup() {
+            const data = { customers, records, exportedAt: new Date().toISOString() };
+            const blob = new Blob([JSON.stringify(data)], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url; a.download = `SitaramDairy_Backup_${new Date().getTime()}.json`;
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
+            showToast("Backup Downloaded Successfully!");
+        }
+
+        function importJSONBackup() {
+            const fileInput = document.getElementById('importJsonFile');
+            if(!fileInput.files.length) return showToast("Select a JSON file first", true);
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if(data.customers && data.records) {
+                        if(confirm("Warning: This will overwrite your current app data. Proceed?")) {
+                            customers = data.customers;
+                            records = data.records;
+                            saveData();
+                            closeModal('settingsModal');
+                            showToast("Backup Restored Successfully!");
+                        }
+                    } else throw new Error("Invalid JSON structure");
+                } catch (err) {
+                    showToast("Invalid or Corrupted Backup File", true);
+                }
+            };
+            reader.readAsText(fileInput.files[0]);
+        }
+
+        window.onload = () => {
+            loadData();
+            let d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+            document.getElementById('eDate').value = d.toISOString().split('T')[0];
+            refreshAll();
+            
+            /* Firebase Cloud Sync Concept Placeholder
+            if(typeof firebase !== 'undefined' && firebase.apps.length === 0) {
+                // firebase.initializeApp({ YOUR_CONFIG });
+                // const db = firebase.database();
+                // Real-time listener placeholder
+            } */
+        };
+
+        // --- 3. UI CONTROLS ---
+        function showToast(msg, error = false) {
+            clearTimeout(toastTimer); 
+            let t = document.getElementById('toast');
+            t.textContent = msg; 
+            t.style.background = error ? 'var(--danger-red)' : 'var(--success-green)';
+            t.style.display = 'block'; 
+            toastTimer = setTimeout(() => t.style.display = 'none', 3000);
+        }
+
+        function switchTab(idx) {
+            document.querySelectorAll('.nav-item').forEach(e => e.classList.remove('active'));
+            document.querySelectorAll('.nav-item')[idx].classList.add('active');
+            document.getElementById('slideWrapper').style.transform = `translateX(-${idx * 100}%)`;
+        }
+
+        function closeModal(id) { 
+            document.getElementById(id).style.display = 'none'; 
+            if(id === 'bulkEntryModal') { bSelected = { 'Morning': new Set(), 'Evening': new Set() }; }
+        }
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        
+        function openSettingsModal() { openModal('settingsModal'); }
+
+        function showConfirmModal(title, msg, confirmText, color, callback) {
+            document.getElementById('ccmTitle').innerText = title;
+            document.getElementById('ccmMessage').innerText = msg;
+            let btn = document.getElementById('ccmBtnConfirm');
+            btn.innerText = confirmText;
+            btn.style.background = color;
+            confirmActionCallback = callback;
+            openModal('customConfirmModal');
+        }
+
+        document.getElementById('ccmBtnConfirm').addEventListener('click', () => {
+            if(confirmActionCallback) confirmActionCallback();
+            closeModal('customConfirmModal');
+        });
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                document.querySelectorAll('.modal').forEach(m => { if(m.style.display === 'flex') closeModal(m.id); });
             }
-            canvas.width = w; 
-            canvas.height = h; 
-            ctx.drawImage(img, 0, 0, w, h); 
-            savedQR = canvas.toDataURL('image/jpeg', 0.2); 
-            safeSetStorage('sitaramCustomQR', savedQR); 
-            triggerSync(); 
-            document.getElementById('qrPreviewImg').src = savedQR; 
-            document.getElementById('qrPreviewImg').style.display = 'inline-block'; 
-            showMsg("QR Updated!", "success");
-          }; 
-          img.src = e.target.result;
-        }; 
-        r.readAsDataURL(input.files[0]);
-      }
-    }
-
-    function switchTab(i) {
-      document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
-      if (i < 4) {
-          document.querySelectorAll('.nav-item')[i].classList.add('active');
-      }
-      document.getElementById('slideWrapper').style.transform = `translateX(-${i * 25}%)`;
-      if (i === 0) displayDashboard();
-      if (i === 1) updateDropdown();
-      if (i === 2) { 
-          document.getElementById('historyDetailView').style.display = 'none'; 
-          document.getElementById('historyListView').style.display = 'block'; 
-          renderHistoryList(); 
-      }
-      if (i === 3) { 
-          resetCustomerForm(); 
-          renderCustList(); 
-      }
-    }
-    
-    function saveCustomerBtn() {
-      let btn = document.getElementById('saveCustBtn'); 
-      btn.disabled = true;
-      
-      let id = document.getElementById('editCustId').value; 
-      let n = document.getElementById('cName').value.trim(); 
-      let p = document.getElementById('cPhone').value.replace(/\s/g, ''); 
-      let a = document.getElementById('cAddress').value.trim(); 
-      let autoEnabled = document.getElementById('cAutoToggle').checked;
-      
-      if (!n || n.length < 2) { 
-          btn.disabled = false; 
-          return alert("Sahi Grahak ka naam bharein!"); 
-      }
-      n = n.charAt(0).toUpperCase() + n.slice(1).toLowerCase();
-      
-      let autoSubObj = null; 
-      let uid = window.crypto && crypto.randomUUID ? crypto.randomUUID() : 'id_' + Date.now();
-      
-      if (autoEnabled) {
-          let aRate = parseFloat(document.getElementById('cAutoRate').value); 
-          let aMatraRaw = document.getElementById('cAutoMatra').value; 
-          let aShift = document.getElementById('cAutoShift').value; 
-          let aProd = document.getElementById('cAutoProduct').value;
-          
-          if(isNaN(aRate)) { 
-              btn.disabled = false; 
-              return alert("Auto-Entry Rate bharein!"); 
-          } 
-          
-          let parsed = parseQuantity(aMatraRaw, aRate); 
-          if(!parsed) { 
-              btn.disabled = false; 
-              return alert("Invalid Auto-Entry Matra!"); 
-          }
-          autoSubObj = { 
-              id: uid, 
-              name: n, 
-              shift: aShift, 
-              product: aProd, 
-              matra: parsed.dispM, 
-              rate: aRate, 
-              amount: parsed.amount 
-          };
-      }
-
-      if (id) {
-        let c = customersData.find(x => x.id == id); 
-        if(!c) { 
-            btn.disabled = false; 
-            return; 
-        }
-        if (c.name !== n) { 
-            dairyRecords.forEach(r => { 
-                if (r.name === c.name) r.name = n; 
-            }); 
-            subscriptions.forEach(s => { 
-                if (s.name === c.name) s.name = n; 
-            }); 
-        }
-        c.name = n; 
-        c.phone = p; 
-        c.address = a; 
-        showMsg("Seller Updated!", "success");
-      } else {
-        if (customersData.some(c => c.name.toLowerCase() === n.toLowerCase())) { 
-            btn.disabled = false; 
-            return alert("Naam pehle se hai!"); 
-        }
-        customersData.push({ id: uid, name: n, phone: p, address: a }); 
-        showMsg("Seller Added!", "success");
-      }
-
-      if (autoEnabled && autoSubObj) { 
-          let existingIdx = subscriptions.findIndex(s => s.name === n && s.shift === autoSubObj.shift && s.product === autoSubObj.product); 
-          if(existingIdx >= 0) {
-              subscriptions[existingIdx] = autoSubObj; 
-          } else {
-              subscriptions.push(autoSubObj); 
-          }
-      } else { 
-          subscriptions = subscriptions.filter(s => s.name !== n); 
-      }
-      
-      buildIndex(); 
-      safeSetStorage('sitaramCusts', JSON.stringify(customersData)); 
-      safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords)); 
-      safeSetStorage('sitaramSubs', JSON.stringify(subscriptions));
-      triggerSync(); 
-      clearCache(); 
-      resetCustomerForm(); 
-      refreshAll();
-      setTimeout(() => {
-          btn.disabled = false;
-      }, 1000);
-    }
-
-    function saveCustomerSilent(n) {
-      n = n.charAt(0).toUpperCase() + n.slice(1).toLowerCase();
-      if (!customersData.some(c => c.name.toLowerCase() === n.toLowerCase())) { 
-          let uid = window.crypto && crypto.randomUUID ? crypto.randomUUID() : 'id_' + Date.now(); 
-          customersData.push({ id: uid, name: n, phone: '', address: '' }); 
-          safeSetStorage('sitaramCusts', JSON.stringify(customersData)); 
-          triggerSync(); 
-      }
-      return n;
-    }
-
-    function resetCustomerForm() {
-      document.getElementById('editCustId').value = ''; 
-      document.getElementById('cName').value = ''; 
-      document.getElementById('cPhone').value = ''; 
-      document.getElementById('cAddress').value = '';
-      document.getElementById('cAutoToggle').checked = false; 
-      toggleAutoFields(); 
-      document.getElementById('cAutoMatra').value = ''; 
-      document.getElementById('cAutoRate').value = '60';
-      document.getElementById('saveCustBtn').innerText = "ADD SELLER"; 
-      document.getElementById('custFormTitle').innerText = "Add New Seller"; 
-      document.getElementById('cancelEditBtn').style.display = 'none';
-    }
-
-    function renderCustList() {
-      const div = document.getElementById('customerListDiv'); 
-      div.innerHTML = '';
-      let fragment = document.createDocumentFragment(); 
-      
-      customersData.sort((a,b) => a.name.localeCompare(b.name)).forEach(c => {
-        let itemDiv = document.createElement('div'); 
-        itemDiv.className = 'khata-item';
-        let safeNameInit = safe((c.name?.[0] || '?').toUpperCase()); 
-        itemDiv.innerHTML = `<div class="khata-avatar">${safeNameInit}</div><div class="khata-details"><b>${safe(c.name)}</b><small>${safe(c.phone)}</small></div><div class="khata-right"><button class="khata-add-btn" onclick="editCust('${c.id}')">✏️</button><button class="khata-add-btn" style="background:#fee2e2; color:red;" onclick="deleteCust('${c.id}', '${safe(c.name)}')">🗑️</button></div>`;
-        fragment.appendChild(itemDiv);
-      });
-      div.appendChild(fragment);
-    }
-
-    function editCust(id) {
-      let c = customersData.find(x => x.id == id); 
-      if(!c) return;
-      document.getElementById('editCustId').value = c.id; 
-      document.getElementById('cName').value = c.name; 
-      document.getElementById('cPhone').value = c.phone || ''; 
-      document.getElementById('cAddress').value = c.address || '';
-      
-      let sub = subscriptions.find(s => s.name === c.name);
-      if (sub) { 
-          document.getElementById('cAutoToggle').checked = true; 
-          document.getElementById('cAutoShift').value = sub.shift; 
-          document.getElementById('cAutoProduct').value = sub.product; 
-          document.getElementById('cAutoRate').value = sub.rate; 
-          document.getElementById('cAutoMatra').value = sub.matra.split(' ')[0]; 
-      } else { 
-          document.getElementById('cAutoToggle').checked = false; 
-      } 
-      toggleAutoFields();
-      
-      document.getElementById('saveCustBtn').innerText = "UPDATE SELLER"; 
-      document.getElementById('custFormTitle').innerText = "Edit Seller Details"; 
-      document.getElementById('cancelEditBtn').style.display = 'block'; 
-      document.getElementById('pageCustomers').scrollTop = 0;
-    }
-
-    function deleteCust(id, name) {
-      if (confirm(`⚠️ FINAL WARNING: Kya aap sach me ${name} ka pura hisaab delete karna chahte hain?`)) {
-         customersData = customersData.filter(c => c.id != id); 
-         subscriptions = subscriptions.filter(s => s.name !== name); 
-         dairyRecords = dairyRecords.filter(r => r.name !== name);
-         buildIndex(); 
-         safeSetStorage('sitaramCusts', JSON.stringify(customersData)); 
-         safeSetStorage('sitaramSubs', JSON.stringify(subscriptions)); 
-         safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords));
-         triggerSync(); 
-         clearCache(); 
-         refreshAll(); 
-         showMsg("Deleted!", "error");
-      }
-    }
-
-    function updateDropdown() {
-      const s = document.getElementById('customerDataList'); 
-      s.innerHTML = '';
-      let names = new Set(dairyRecords.map(r => r.name)); 
-      customersData.forEach(c => names.add(c.name));
-      
-      let fragment = document.createDocumentFragment();
-      Array.from(names).sort().forEach(n => { 
-          let opt = document.createElement('option'); 
-          opt.value = safe(n); 
-          fragment.appendChild(opt); 
-      });
-      s.appendChild(fragment);
-    }
-
-    function isMatch(ds) { 
-        let o = parseDate(ds); 
-        return o && o.m === viewMonth && o.y === viewYear; 
-    }
-    
-    function clearCache() { 
-        delete monthlyCache[`${viewMonth}-${viewYear}`]; 
-        chartLoaded = false; 
-    }
-    
-    function getFilteredRecords() { 
-        let k = `${viewMonth}-${viewYear}`; 
-        if(monthlyCache[k]) return monthlyCache[k]; 
-        let d = dairyRecords.filter(r => isMatch(r.date)); 
-        monthlyCache[k] = d; 
-        return d; 
-    }
-    
-    function refreshAll() { 
-        displayDashboard(); 
-        renderHistoryList(); 
-        renderCustList(); 
-        updateDropdown(); 
-    }
-
-    function toggleEntryPayMethod() { 
-        document.getElementById('entryPayMethodDiv').style.display = document.getElementById('payment').value === 'paid' ? 'block' : 'none'; 
-    }
-    
-    function toggleEditPayMode() { 
-        document.getElementById('edPayModeGroup').style.display = document.getElementById('edPayment').value === 'paid' ? 'block' : 'none'; 
-    }
-    
-    function setPaymentMode(m, target = 'entry') {
-      activePaymentMode = m;
-      if (target === 'entry') { 
-          document.getElementById('eBtnCash').classList.toggle('active', m === 'cash'); 
-          document.getElementById('eBtnOnline').classList.toggle('active', m === 'online'); 
-      } else { 
-          document.getElementById('mBtnCash').classList.toggle('active', m === 'cash'); 
-          document.getElementById('mBtnOnline').classList.toggle('active', m === 'online'); 
-          updateVisuals('profPayMode', 'modalVisualArea', 'modalInstructionTxt', m); 
-      }
-    }
-
-    function saveRecord() {
-      let btn = document.getElementById('btnSaveEntry'); 
-      btn.disabled = true;
-      
-      let n = document.getElementById('customerSelectInput').value.trim(); 
-      let r = parseFloat(document.getElementById('rate').value); 
-      let p = document.getElementById('payment').value; 
-      let dVal = document.getElementById('entryDate').value || new Date().toISOString().split('T')[0]; 
-      let rawM = document.getElementById('matra').value;
-      
-      if (!n || n.length < 2) { 
-          btn.disabled = false; 
-          return alert("Naam bharein!"); 
-      } 
-      if(isNaN(r)) { 
-          btn.disabled = false; 
-          return alert("Rate bharein!"); 
-      }
-      
-      let parsed = parseQuantity(rawM, r); 
-      if(!parsed) { 
-          btn.disabled = false; 
-          return alert("Invalid Matra!"); 
-      } 
-      n = saveCustomerSilent(n);
-      
-      let fPM = (!parsed.dispM.includes('🚫') && p === 'paid') ? activePaymentMode : null; 
-      let fPD = fPM ? dVal : null;
-      let remarksTxt = document.getElementById('remarks') ? document.getElementById('remarks').value.trim() : '';
-      let uid = window.crypto && crypto.randomUUID ? crypto.randomUUID() : 'id_' + Date.now();
-      
-      dairyRecords.push({ 
-          id: uid, 
-          date: dVal, 
-          name: n, 
-          product: document.getElementById('product').value, 
-          shift: document.getElementById('shift').value, 
-          matra: parsed.dispM, 
-          rate: r, 
-          amount: parsed.amount, 
-          payment: p, 
-          payMode: fPM, 
-          payDate: fPD, 
-          remarks: remarksTxt 
-      });
-      
-      buildIndex(); 
-      safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords)); 
-      triggerSync();
-      
-      document.getElementById('matra').value = ''; 
-      document.getElementById('customerSelectInput').value = ''; 
-      if(document.getElementById('remarks')) document.getElementById('remarks').value = ''; 
-      
-      let dObj = parseDate(dVal); 
-      viewMonth = dObj.m; 
-      viewYear = dObj.y; 
-      clearCache(); 
-      updateMonthDisplay(); 
-      refreshAll(); 
-      showMsg("Saved!", "success"); 
-      switchTab(0);
-      
-      setTimeout(() => {
-          btn.disabled = false;
-      }, 1000);
-    }
-    
-    function openEditEntry(id) {
-      if(isModalOpen) return; 
-      let r = dairyRecords.find(x => x.id == id); 
-      if (!r) return; 
-      
-      isModalOpen = true; 
-      document.getElementById('editEntryId').value = r.id; 
-      let d = parseDate(r.date); 
-      document.getElementById('edDate').value = `${d.y}-${String(d.m+1).padStart(2,'0')}-${String(d.d).padStart(2,'0')}`; 
-      document.getElementById('edProduct').value = r.product; 
-      document.getElementById('edMatra').value = r.matra.includes('🚫') ? 'gap' : r.matra; 
-      document.getElementById('edRate').value = r.rate; 
-      document.getElementById('edPayment').value = r.payment;
-      
-      if (document.getElementById('edRemarks')) {
-          document.getElementById('edRemarks').value = r.remarks || '';
-      }
-      
-      if(r.payment === 'paid') { 
-          document.getElementById('edPayModeGroup').style.display = 'block'; 
-          document.getElementById('edPayMode').value = r.payMode || 'cash'; 
-      } else { 
-          document.getElementById('edPayModeGroup').style.display = 'none'; 
-      } 
-      
-      document.getElementById('editEntryModal').style.display = 'flex';
-      history.pushState(null, null, "#modal");
-    }
-
-    function closeEditEntryModal() { 
-        document.getElementById('editEntryModal').style.display = 'none'; 
-        isModalOpen = false; 
-    }
-    
-    function deleteEditedEntry() {
-      if (confirm("⚠️ Pakka Delete karna hai?")) {
-          let id = document.getElementById('editEntryId').value; 
-          dairyRecords = dairyRecords.filter(r => r.id != id); 
-          buildIndex(); 
-          safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords)); 
-          triggerSync(); 
-          closeEditEntryModal(); 
-          clearCache(); 
-          refreshAll(); 
-          showMsg("Deleted!", "error"); 
-          if(curHistName) { 
-              openCustTab(document.querySelector('.cust-nav-tab.active').id.replace('t','').toLowerCase()); 
-          }
-      }
-    }
-    
-    function saveEditedEntry() {
-      let r = dairyRecords.find(x => x.id == document.getElementById('editEntryId').value); 
-      if(!r) return; 
-      
-      let rate = parseFloat(document.getElementById('edRate').value); 
-      let parsed = parseQuantity(document.getElementById('edMatra').value, rate); 
-      if(!parsed) return alert("Invalid Matra");
-      
-      r.payment = document.getElementById('edPayment').value; 
-      r.date = document.getElementById('edDate').value; 
-      r.product = document.getElementById('edProduct').value; 
-      r.matra = parsed.dispM; 
-      r.rate = rate; 
-      r.amount = parsed.amount;
-      
-      if (document.getElementById('edRemarks')) {
-          r.remarks = document.getElementById('edRemarks').value.trim();
-      }
-      
-      if(r.payment === 'paid') { 
-          r.payDate = r.date; 
-          r.payMode = document.getElementById('edPayMode').value; 
-      } else { 
-          r.payDate = null; 
-          r.payMode = null; 
-      }
-      
-      buildIndex(); 
-      safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords)); 
-      triggerSync(); 
-      closeEditEntryModal(); 
-      clearCache(); 
-      refreshAll(); 
-      showMsg("Updated!", "success"); 
-      
-      if(curHistName) { 
-          openCustTab(document.querySelector('.cust-nav-tab.active').id.replace('t','').toLowerCase()); 
-      }
-    }
-
-    function displayDashboard() {
-      let milk = 0, ghee = 0, mahi = 0, paid = 0, due = 0, total = 0;
-      getFilteredRecords().forEach(r => {
-        if (!r.matra.includes('🚫')) {
-          total += r.amount; 
-          if(r.payment === 'paid') {
-              paid += r.amount; 
-          } else {
-              due += r.amount;
-          }
-          
-          let nStr = r.matra.match(/\d*\.?\d+/); 
-          if(nStr) { 
-              let v = parseFloat(nStr[0]); 
-              if(r.matra.includes('ml') || r.matra.includes('g')) {
-                  v /= 1000; 
-              }
-              if(r.product === 'Ghee') {
-                  ghee += v; 
-              } else if(r.product === 'Mahi') {
-                  mahi += v; 
-              } else {
-                  milk += v;
-              }
-          }
-        }
-      });
-      
-      document.getElementById('dashDoodh').innerText = parseFloat(milk.toFixed(2)) + ' L'; 
-      document.getElementById('dashGhee').innerText = parseFloat(ghee.toFixed(2)) + ' kg'; 
-      document.getElementById('dashMahi').innerText = parseFloat(mahi.toFixed(2)) + ' L';
-      document.getElementById('dashPaid').innerText = 'Rs ' + parseFloat(paid.toFixed(2)); 
-      document.getElementById('dashUnpaid').innerText = 'Rs ' + parseFloat(due.toFixed(2)); 
-      document.getElementById('dashTotalBill').innerText = 'Rs ' + parseFloat(total.toFixed(2)); 
-      document.getElementById('dashOutstanding').innerText = 'Rs ' + parseFloat(due.toFixed(2));
-      
-      filterHomeList(); 
-      if (!chartLoaded) { 
-          renderCharts(); 
-          chartLoaded = true; 
-      }
-    }
-
-    function debounceFilterHomeList() { 
-        clearTimeout(searchTimeoutHome); 
-        searchTimeoutHome = setTimeout(filterHomeList, 300); 
-    }
-    
-    function filterHomeList() {
-      const q = document.getElementById('searchInput').value.toLowerCase(); 
-      const hL = document.getElementById('homeRecentList'); 
-      hL.innerHTML = '';
-      
-      let mRecs = getFilteredRecords(); 
-      let fil = [];
-      
-      for (let i = mRecs.length - 1; i >= 0; i--) { 
-          if (mRecs[i].name.toLowerCase().includes(q)) { 
-              fil.push(mRecs[i]); 
-              if(fil.length >= 20) break; 
-          } 
-      } 
-      
-      if (fil.length === 0) {
-          hL.innerHTML = '<p style="text-align:center;">No entry</p>';
-          return;
-      }
-      
-      let fragment = document.createDocumentFragment();
-      fil.forEach(r => {
-        let li = document.createElement('li'); 
-        li.className = 'khata-item'; 
-        
-        let isMorning = r.shift === 'Subah' || r.shift === 'Morning'; 
-        let iconBg = isMorning ? '#f59e0b' : '#3b82f6'; 
-        let shiftChar = isMorning ? 'M' : 'E';
-        
-        let payT = r.payment === 'paid' ? `<span class="pay-status status-paid">Paid ${r.payMode === 'online' ? '📱' : '💵'}</span>` : `<span class="pay-status status-due">Due ❌</span>`;
-        if(r.matra.includes('🚫')) {
-            payT = `<span class="pay-status status-paid">GAP 🚫</span>`;
-        }
-        
-        let remHtml = r.remarks ? `<br><small style="color:#9ca3af; font-style:italic;">📝 ${safe(r.remarks)}</small>` : '';
-        
-        li.innerHTML = `<div class="khata-avatar" style="background:${iconBg}; font-size:1rem;">${shiftChar}</div><div class="khata-details"><b>${safe(r.name)}</b><small>${parseDate(r.date).d}/${parseDate(r.date).m+1} | ${r.matra} @ Rs ${r.rate}</small>${remHtml}<div style="margin-top:3px;">${payT}</div></div><div class="khata-right" style="flex-direction:column; align-items:flex-end;"><div class="entry-amount ${r.payment === 'paid' ? '' : 'unpaid'}">Rs ${r.amount}</div><button onclick="openEditEntry('${r.id}')" style="background:var(--light-bg); border:1px solid var(--border-color); border-radius:5px;">✏️ Edit</button></div>`;
-        fragment.appendChild(li);
-      });
-      hL.appendChild(fragment);
-    }
-
-    function debounceRenderHistoryList() { 
-        clearTimeout(histSearchTimeout); 
-        histSearchTimeout = setTimeout(renderHistoryList, 300); 
-    }
-    
-    function renderHistoryList() {
-      const q = document.getElementById('historySearch').value.toLowerCase(); 
-      const div = document.getElementById('historyCustList'); 
-      div.innerHTML = '';
-      
-      let names = new Set(Object.keys(recordMap)); 
-      customersData.forEach(c => names.add(c.name));
-      let fil = Array.from(names).filter(n => n.toLowerCase().includes(q)).sort(); 
-      let userTotals = {};
-      
-      for (let n in recordMap) {
-          recordMap[n].forEach(r => {
-             if(r.payment !== 'paid' && !r.matra.includes('🚫')) {
-                 userTotals[n] = (userTotals[n] || 0) + r.amount;
-             }
-          });
-      }
-
-      let fragment = document.createDocumentFragment();
-      fil.forEach(n => {
-        let d = parseFloat((userTotals[n] || 0).toFixed(2)); 
-        let dueText = d > 0 ? `<span class="khata-due">Due: Rs ${d}</span>` : `<span style="color:#10b981; font-weight:bold;">Clear ✅</span>`;
-        let safeNameInit = safe((n?.[0] || '?').toUpperCase());
-        
-        let itemDiv = document.createElement('div'); 
-        itemDiv.className = 'khata-item'; 
-        itemDiv.setAttribute('onclick', `openCustProfile('${safe(n)}')`);
-        itemDiv.innerHTML = `<div class="khata-avatar">${safeNameInit}</div><div class="khata-details"><b>${safe(n)}</b><small>Tap to view details</small></div><div class="khata-right">${dueText}<button class="khata-add-btn" onclick="event.stopPropagation(); switchTab(1); document.getElementById('customerSelectInput').value='${safe(n)}';">+ Add</button></div>`;
-        fragment.appendChild(itemDiv);
-      });
-      div.appendChild(fragment);
-    }
-
-    function openCustProfile(n) { 
-        curHistName = n; 
-        custViewMonth = viewMonth; 
-        custViewYear = viewYear; 
-        document.getElementById('historyListView').style.display = 'none'; 
-        document.getElementById('historyDetailView').style.display = 'block'; 
-        document.getElementById('histCustName').innerText = "👤 " + safe(n); 
-        openCustTab('detail'); 
-    }
-    
-    function changeCustMonth(dir) { 
-        custViewMonth += dir; 
-        if(custViewMonth < 0) { 
-            custViewMonth = 11; 
-            custViewYear--; 
-        } else if(custViewMonth > 11) { 
-            custViewMonth = 0; 
-            custViewYear++; 
-        } 
-        openCustTab('calendar'); 
-    }
-    
-    function openCustTab(t) {
-      document.querySelectorAll('.cust-nav-tab').forEach(x => x.classList.remove('active')); 
-      document.getElementById({detail:'tDet', calendar:'tCal', pay:'tPay'}[t]).classList.add('active'); 
-      const cont = document.getElementById('custTabContent'); 
-      cont.innerHTML = '';
-      
-      if (t === 'detail') {
-        let userRecs = recordMap[curHistName] || [];
-        let recs = userRecs.filter(r => { 
-            let o = parseDate(r.date); 
-            return o && o.m === custViewMonth && o.y === custViewYear; 
         });
-        
-        if(!recs.length) { 
-            cont.innerHTML = '<p style="text-align:center; padding:20px;">No Entry</p>'; 
-        } else {
-          let ul = document.createElement('ul'); 
-          ul.className = 'khata-list'; 
-          let fragment = document.createDocumentFragment();
-          
-          [...recs].reverse().forEach(r => {
-             let isMorning = r.shift === 'Subah' || r.shift === 'Morning'; 
-             let iconBg = isMorning ? '#f59e0b' : '#3b82f6'; 
-             let shiftChar = isMorning ? 'M' : 'E';
-             
-             let payT = r.payment === 'paid' ? `<span class="pay-status status-paid">Paid ${r.payMode === 'online' ? '📱' : '💵'}</span>` : `<span class="pay-status status-due">Due ❌</span>`; 
-             if(r.matra.includes('🚫')) {
-                 payT = `<span class="pay-status status-paid">GAP 🚫</span>`;
-             }
-             
-             let remHtml = r.remarks ? `<br><small style="color:#9ca3af; font-style:italic;">📝 ${safe(r.remarks)}</small>` : '';
-             
-             let li = document.createElement('li'); 
-             li.className = 'khata-item';
-             li.innerHTML = `<div class="khata-avatar" style="background:${iconBg}; font-size:1rem;">${shiftChar}</div><div class="khata-details"><b>${safe(r.name)}</b><small>${parseDate(r.date).d}/${parseDate(r.date).m+1} | ${r.matra} @ Rs ${r.rate}</small>${remHtml}<div style="margin-top:3px;">${payT}</div></div><div class="khata-right" style="flex-direction:column; align-items:flex-end;"><div class="entry-amount ${r.payment === 'paid' ? '' : 'unpaid'}">Rs ${r.amount}</div><button onclick="openEditEntry('${r.id}')" style="background:var(--light-bg); border:1px solid var(--border-color); border-radius:5px;">✏️ Edit</button></div>`;
-             fragment.appendChild(li);
-          });
-          ul.appendChild(fragment); 
-          cont.appendChild(ul);
+
+        function autoRate(pfx) { document.getElementById(pfx+'Rate').value = rates[document.getElementById(pfx+'Prod').value] || 60; }
+
+        // Strict Quantity Parser (Only L, ml, kg, g)
+        function parseQuantity(input, rate) {
+            let val = input.toString().trim();
+            if(!val || val.toLowerCase().includes('gap') || val.includes('🚫')) return { isGap: true, text: 'Gap 🚫', amt: 0, ltr: 0 };
+            
+            let match = val.match(/^(\d*\.?\d+)\s*(L|ml|kg|g|ltr)?$/i);
+            if(!match) return null;
+            let num = parseFloat(match[1]);
+            if(num <= 0 || num > 99999) return null;
+            
+            let unit = (match[2] || 'L').toLowerCase();
+            if(unit==='ltr') unit='l';
+            
+            let amountPaise = (unit === 'ml' || unit === 'g') ? (num / 1000) * rate * 100 : num * rate * 100;
+            return { isGap: false, text: `${num} ${unit}`, amt: Math.round(amountPaise) / 100, ltr: (unit === 'ml' || unit === 'g') ? (num / 1000) : num };
         }
-      } else if (t === 'calendar') {
-        cont.innerHTML = `<div class="month-selector" style="margin-bottom:15px; background:var(--light-bg); padding:5px; border-radius:8px;"><span class="month-btn" onclick="changeCustMonth(-1)">&lt;</span><span class="month-text">${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][custViewMonth]} ${custViewYear}</span><span class="month-btn" onclick="changeCustMonth(1)">&gt;</span></div>` + getCal(curHistName);
-      } else if (t === 'pay') {
-        let tBill = 0, tPaid = 0, totalAllTimeDue = 0;
-        let userRecs = recordMap[curHistName] || [];
-        
-        userRecs.filter(r => { 
-            let o = parseDate(r.date); 
-            return o && o.m === custViewMonth && o.y === custViewYear && !r.matra.includes('🚫'); 
-        }).forEach(r => { 
-            tBill += r.amount; 
-            if(r.payment === 'paid') tPaid += r.amount; 
-        });
-        
-        userRecs.filter(r => r.payment !== 'paid' && !r.matra.includes('🚫')).forEach(r => {
-            totalAllTimeDue += r.amount;
-        });
-        
-        let sumH = `<div style="background:var(--light-bg); padding:15px; border-radius:10px; display:flex; justify-content:space-around; text-align:center; margin-bottom:15px;"><div style="line-height:1.4"><small>Month Bill</small><br><b>Rs ${parseFloat(tBill.toFixed(2))}</b></div><div style="line-height:1.4"><small>Month Recv</small><br><b style="color:var(--success-green)">Rs ${parseFloat(tPaid.toFixed(2))}</b></div><div style="line-height:1.4"><small>Total Due</small><br><b style="color:var(--danger-red)">Rs ${parseFloat(totalAllTimeDue.toFixed(2))}</b></div></div>`;
-        
-        if (totalAllTimeDue <= 0) { 
-            cont.innerHTML = sumH + '<div style="text-align:center;"><div style="font-size:4rem;">🎉</div><h3 style="color:var(--success-green);">Sab Clear Hai!</h3></div>'; 
-        } else {
-          cont.innerHTML = sumH + `<div style="text-align:center;"><h2>Pay: Rs ${parseFloat(totalAllTimeDue.toFixed(2))}</h2><div class="pay-method-group"><button class="pay-method-btn active" id="pBtnO" onclick="setPaymentMode('online', 'prof')">📱 Online</button><button class="pay-method-btn" id="pBtnC" onclick="setPaymentMode('cash', 'prof')">💵 Cash</button></div><input type="hidden" id="profPayMode" value="online"><div class="visual-area" id="profVisualArea"></div><p id="profInstructionTxt" style="font-weight:bold;"></p><button class="btn-add-entry" style="background:var(--success-green);" onclick="confirmPayment('prof')">✅ Confirm Payment</button></div>`; 
-          setPaymentMode('online', 'prof');
+
+        // --- 4. O(1) BULK ENTRY LOGIC & CALENDAR LAYOUT ---
+        function openBulkModal() {
+            document.getElementById('bCust').innerHTML = document.getElementById('eCust').innerHTML;
+            bMonth = curMonth; bYear = curYear; bShift = 'Morning';
+            setBulkShift('Morning'); updateBulkMonthText();
+            openModal('bulkEntryModal');
         }
-      }
-    }
 
-    function openPayModal() { 
-        if(isModalOpen) return; 
-        isModalOpen = true; 
-        document.getElementById('payModal').style.display = 'flex'; 
-        document.getElementById('modalStep1').style.display = 'block'; 
-        document.getElementById('modalStep2').style.display = 'none'; 
-        renderPayModalList(); 
-        history.pushState(null, null, "#modal"); 
-    }
-    
-    function closePayModal() { 
-        document.getElementById('payModal').style.display = 'none'; 
-        isModalOpen = false;
-    }
-    
-    function renderPayModalList() {
-      const q = (document.getElementById('paySearchInput').value || '').toLowerCase(); 
-      const ul = document.getElementById('payCustomerList'); 
-      ul.innerHTML = ''; 
-      let udhaar = {};
-      
-      for(let n in recordMap) { 
-          recordMap[n].forEach(r => { 
-              if(r.payment !== 'paid' && !r.matra.includes('🚫')) { 
-                  udhaar[r.name] = (udhaar[r.name] || 0) + r.amount; 
-              } 
-          }); 
-      }
-      
-      let ent = Object.entries(udhaar).filter(([n,a]) => n.toLowerCase().includes(q) && a > 0);
-      
-      if(!ent.length) {
-          ul.innerHTML = '<p style="text-align:center; padding:20px; color:var(--success-green); font-weight:bold;">No Dues! Sab Clear Hai.</p>';
-          return;
-      }
-      
-      let fragment = document.createDocumentFragment();
-      ent.forEach(([n,a]) => { 
-          let li = document.createElement('li'); 
-          li.className = 'khata-item'; 
-          li.setAttribute('onclick', `showQR('${safe(n)}', ${a})`);
-          li.innerHTML = `<div class="khata-avatar" style="background:#fee2e2; color:#dc2626;">${safe((n?.[0] || '?').toUpperCase())}</div><div class="khata-details"><b>${safe(n)}</b></div><div class="khata-right"><b style="color:var(--danger-red);">Rs ${parseFloat(a.toFixed(2))} ></b></div>`;
-          fragment.appendChild(li);
-      });
-      ul.appendChild(fragment);
-    }
-    
-    function showQR(n, a) { 
-        curPayName = n; 
-        document.getElementById('modalStep1').style.display = 'none'; 
-        document.getElementById('modalStep2').style.display = 'block'; 
-        document.getElementById('qrCustomerName').innerText = safe(n); 
-        document.getElementById('qrAmount').innerText = 'Rs ' + parseFloat(a.toFixed(2)); 
-        setPaymentMode('online','modal'); 
-    }
-    
-    function backToPayList() { 
-        document.getElementById('modalStep1').style.display = 'block'; 
-        document.getElementById('modalStep2').style.display = 'none'; 
-    }
-    
-    function updateVisuals(modeInputId, visualAreaId, instructionTxtId, mode) {
-      const vArea = document.getElementById(visualAreaId); 
-      const instr = document.getElementById(instructionTxtId);
-      if (mode === 'online') { 
-          vArea.innerHTML = savedQR ? `<img src="${savedQR}" style="max-width:200px; max-height:200px; border:2px solid var(--primary-blue); border-radius:10px;">` : `<div style="width:160px; height:160px; border:5px solid black; background:repeating-linear-gradient(45deg, #000, #000 10px, #fff 10px, #fff 20px); display:flex; align-items:center; justify-content:center;"><div style="background:white; padding:10px; font-weight:bold;">DUMMY QR</div></div>`; 
-          instr.innerText = "Grahak ko QR Code dikhayein."; 
-      } else { 
-          vArea.innerHTML = `<div style="font-size:5rem; background:#dcfce7; width:130px; height:130px; border-radius:100px; display:flex; align-items:center; justify-content:center;">💵</div>`; 
-          instr.innerText = "Cash milne par confirm dabayein."; 
-      }
-    }
-    
-    function confirmPayment(src) {
-      let n = src === 'modal' ? curPayName : curHistName; 
-      if(!confirm(`Kya ${n} se payment mil gaya?`)) return;
-      
-      let todayStr = new Date(new Date().getTime() - new Date().getTimezoneOffset() * 60000).toISOString().split('T')[0];
-      if(recordMap[n]) {
-          recordMap[n].forEach(r => { 
-              if(r.payment !== 'paid' && !r.matra.includes('🚫')) { 
-                  r.payment = 'paid'; 
-                  r.payMode = activePaymentMode; 
-                  r.payDate = todayStr; 
-              } 
-          });
-      }
-      safeSetStorage('sitaramRecords', JSON.stringify(dairyRecords)); 
-      triggerSync(); 
-      
-      if(src === 'modal') closePayModal(); 
-      clearCache(); 
-      refreshAll(); 
-      showMsg("Payment Received!", "success");
-    }
-
-    function populateBillArea() {
-      let userRecs = recordMap[curHistName] || [];
-      let mRecs = userRecs.filter(r => { 
-          let o = parseDate(r.date); 
-          return o && o.m === custViewMonth && o.y === custViewYear; 
-      });
-      if (!mRecs.length) return false;
-      
-      let tMilk = 0, cBill = 0, gaps = 0; 
-      let table = document.getElementById("billTable"); 
-      
-      let htmlStr = "";
-      mRecs.forEach(r => {
-        if(r.matra.includes('🚫')) {
-            gaps++; 
-        } else {
-          cBill += r.amount; 
-          let pd = parseDate(r.date); 
-          let dDate = pd ? `${pd.d}/${pd.m+1}/${pd.y}` : safe(r.date);
-          let safeRem = r.remarks ? ` <small>(${safe(r.remarks)})</small>` : '';
-          
-          htmlStr += `<tr><td style="border: 1px solid #ddd; padding:8px;">${dDate}</td><td style="border: 1px solid #ddd; padding:8px;">${safe(r.product)}${safeRem}</td><td style="border: 1px solid #ddd; padding:8px;">${safe(r.matra)}</td><td style="border: 1px solid #ddd; padding:8px; text-align:right;">${parseFloat(r.amount.toFixed(2))}</td></tr>`;
-          
-          let nStr = r.matra.match(/\d*\.?\d+/); 
-          if(nStr) { 
-              let v = parseFloat(nStr[0]); 
-              if(r.matra.includes('ml') || r.matra.includes('g')) {
-                  v /= 1000; 
-              }
-              if(r.product === 'Doodh') {
-                  tMilk += v; 
-              }
-          }
+        function changeBulkMonth(dir) {
+            bMonth += dir;
+            if(bMonth < 0) { bMonth = 11; bYear--; } else if(bMonth > 11) { bMonth = 0; bYear++; }
+            updateBulkMonthText(); loadBulkData();
         }
-      });
-      table.innerHTML = htmlStr; 
-      
-      let tAllDue = 0; 
-      userRecs.forEach(r => { 
-          if(r.payment !== 'paid' && !r.matra.includes('🚫')) {
-              tAllDue += r.amount; 
-          }
-      });
-      
-      document.getElementById("bName").innerText = curHistName; 
-      document.getElementById("bMonth").innerText = document.getElementById("currentMonthText").innerText; 
-      document.getElementById("bTotal").innerHTML = `<p>Total Gaps: <b>${gaps} Days</b></p><p>Total Milk: <b>${tMilk.toFixed(1)} L</b></p><p>This Month Bill: <b>Rs ${parseFloat(cBill.toFixed(2))}</b></p><h2 style="color:#ef4444;">Total Due (Incl. Old): Rs ${parseFloat(tAllDue.toFixed(2))}</h2>`;
-      return true;
-    }
 
-    function shareWhatsAppBill() {
-      let userRecs = recordMap[curHistName] || [];
-      let mRecs = userRecs.filter(r => { 
-          let o = parseDate(r.date); 
-          return o && o.m === custViewMonth && o.y === custViewYear; 
-      });
-      if (!mRecs.length) return alert("No data"); 
-      
-      let tMilk = 0, cBill = 0, gaps = 0;
-      mRecs.forEach(r => { 
-          if(r.matra.includes('🚫')) {
-              gaps++; 
-          } else { 
-              cBill += r.amount; 
-              let nStr = r.matra.match(/\d*\.?\d+/); 
-              if(nStr) { 
-                  let v = parseFloat(nStr[0]); 
-                  if(r.matra.includes('ml')) v /= 1000; 
-                  if(r.product === 'Doodh') tMilk += v; 
-              } 
-          } 
-      });
-      
-      let tDue = 0; 
-      userRecs.forEach(r => { 
-          if(r.payment !== 'paid' && !r.matra.includes('🚫')) {
-              tDue += r.amount; 
-          }
-      });
-      
-      let msg = `*Sitaram Dairy*\nCustomer: ${curHistName}\nMonth: ${document.getElementById('currentMonthText').innerText}\nGap: ${gaps} Din\nMilk: ${tMilk.toFixed(1)} L\nMonth Bill: Rs ${parseFloat(cBill.toFixed(2))}\n*Total Due: Rs ${parseFloat(tDue.toFixed(2))}*\nPlease pay your bill. 🙏`;
-      let c = customersData.find(x => x.name === curHistName); 
-      let p = c && c.phone ? c.phone.replace(/[^\d]/g, '') : ''; 
-      let u = (p.length >= 10) ? `https://wa.me/91${p.slice(-10)}?text=${encodeURIComponent(msg)}` : `https://api.whatsapp.com/send?text=${encodeURIComponent(msg)}`; 
-      window.open(u, '_blank');
-    }
-
-    async function shareBillImage() {
-      if(!populateBillArea()) return alert("No Data"); 
-      let el = document.getElementById("billArea"); 
-      el.style.opacity = '1'; 
-      el.style.zIndex = '100'; 
-      showMsg("Generating...", "success");
-      
-      try { 
-          const canvas = await html2canvas(el, { scale: 1 }); 
-          el.style.opacity = '0'; 
-          el.style.zIndex = '-9999'; 
-          canvas.toBlob(async(b) => { 
-              const f = new File([b], `Bill_${curHistName}.jpg`, { type: 'image/jpeg' }); 
-              if(navigator.canShare && navigator.canShare({files: [f]})) { 
-                  await navigator.share({files: [f], title: 'Bill'}); 
-              } else { 
-                  showBillImageModal(); 
-              } 
-          }, 'image/jpeg'); 
-      } catch(e) { 
-          el.style.opacity = '0'; 
-          el.style.zIndex = '-9999'; 
-      }
-    }
-    
-    function showBillImageModal() { 
-        if(!populateBillArea()) return; 
-        let el = document.getElementById("billArea"); 
-        el.style.opacity = '1'; 
-        el.style.zIndex = '100'; 
-        showMsg("Loading...", "success"); 
-        
-        html2canvas(el, {scale: 1}).then(c => { 
-            el.style.opacity = '0'; 
-            el.style.zIndex = '-9999'; 
-            document.getElementById('modalImage').src = c.toDataURL('image/jpeg'); 
-            document.getElementById('imageModal').style.display = 'flex'; 
-        }); 
-    }
-    
-    function closeModal() { 
-        document.getElementById('imageModal').style.display = 'none'; 
-    }
-    
-    function downloadBillPDF() {
-      if(!populateBillArea()) return alert("No data"); 
-      let el = document.getElementById("billArea"); 
-      el.style.opacity = '1'; 
-      el.style.zIndex = '100'; 
-      showMsg("PDF generating...", "success");
-      
-      setTimeout(() => { 
-          try { 
-              html2pdf().from(el).set({ 
-                  margin: 0.3, 
-                  filename: `Bill_${curHistName}.pdf`, 
-                  html2canvas: {scale: 1} 
-              }).save().then(() => el.style.opacity = '0'); 
-          } catch(e) { 
-              let w = window.open('','','width=900,height=700'); 
-              w.document.write('<html><body>' + el.innerHTML + '</body></html>'); 
-              w.document.close(); 
-              w.print(); 
-              el.style.opacity = '0'; 
-          } 
-      }, 500);
-    }
-
-    function getCal(n) {
-      let now = new Date(); 
-      let isCurr = (now.getMonth() === custViewMonth && now.getFullYear() === custViewYear); 
-      let first = new Date(custViewYear, custViewMonth, 1).getDay(); 
-      let days = new Date(custViewYear, custViewMonth+1, 0).getDate();
-      let userRecs = recordMap[n] || [];
-      
-      let mRecs = userRecs.filter(r => { 
-          let o = parseDate(r.date); 
-          return o && o.m === custViewMonth && o.y === custViewYear; 
-      }); 
-      
-      let calMap = {};
-      mRecs.forEach(r => { 
-          let pd = parseDate(r.date); 
-          if(pd) { 
-              if(!calMap[pd.d]) calMap[pd.d] = []; 
-              calMap[pd.d].push(r); 
-          } 
-      });
-      
-      let h = `<div class="calendar-container"><div class="calendar-grid">`; 
-      ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].forEach(d => h += `<div class="cal-header-cell">${d}</div>`);
-      
-      for (let i = 0; i < first; i++) {
-          h += `<div class="cal-cell empty"></div>`;
-      }
-      
-      for (let i = 1; i <= days; i++) { 
-          let recs = calMap[i] || []; 
-          let dH = ''; 
-          recs.forEach(r => {
-              dH += `<div class="cal-data ${r.matra.includes('🚫') ? 'gap' : ''}">${r.shift[0]}:${r.matra.split(' ')[0]}</div>`;
-          }); 
-          if(!dH) dH = `<div style="text-align:center; color:#ccc;">-</div>`; 
-          h += `<div class="cal-cell ${isCurr && i === now.getDate() ? 'today' : ''}"><div class="cal-date">${i}</div>${dH}</div>`; 
-      }
-      
-      for (let i = 0; i < (7 - ((first + days) % 7)) % 7; i++) {
-          h += `<div class="cal-cell empty"></div>`;
-      }
-      
-      return h + `</div></div>`;
-    }
-
-    function exportCSV() { 
-        let mR = getFilteredRecords(); 
-        if(!mR.length) return alert("No data"); 
-        
-        let csv = 'Date,Name,Product,Shift,Matra,Rate,Amount,Payment,Remarks,Mode\n'; 
-        mR.forEach(r => {
-            csv += `"${safe(r.date)}","${safe(r.name)}","${safe(r.product)}","${safe(r.shift)}","${safe(r.matra)}","${r.rate}","${r.amount}","${safe(r.payment)}","${safe(r.remarks)}","${safe(r.payMode || '')}"\n`;
-        }); 
-        
-        let a = document.createElement('a'); 
-        a.href = URL.createObjectURL(new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8;'})); 
-        a.download = `SitaramDairy.csv`; 
-        a.click(); 
-    }
-    
-    async function clearAllData() { 
-      if (confirm("Sab delete ho jayega! Pakka?")) { 
-        if (confirm("⚠️ AAKHRI CHETAWNI: App ka saara data hamesha ke liye delete ho jayega. Back up le liya na?")) {
-            localStorage.removeItem('sitaramRecords'); 
-            localStorage.removeItem('sitaramCusts'); 
-            localStorage.removeItem('sitaramSubs'); 
-            localStorage.removeItem('sitaramCustomQR'); 
-            localStorage.removeItem('sitaramLastUpdated');
-            try { 
-                let ref = getUserRef(); 
-                if (ref) { 
-                    await ref.set(null); 
-                } 
-            } catch(e) {} 
-            location.reload(); 
+        function updateBulkMonthText() {
+            document.getElementById('bMonthTxt').innerText = `${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][bMonth]} ${bYear}`;
         }
-      } 
-    }
-  </script>
+
+        function setBulkShift(shift) {
+            bShift = shift;
+            document.getElementById('bTabM').classList.toggle('active', shift === 'Morning');
+            document.getElementById('bTabE').classList.toggle('active', shift === 'Evening');
+            renderBulkCalendar();
+        }
+
+        function loadBulkData() {
+            bSelected = { 'Morning': new Set(), 'Evening': new Set() };
+            bPaidSet = new Set();
+            let cid = document.getElementById('bCust').value;
+            let prod = document.getElementById('bProd').value;
+            if(cid) {
+                let userRecs = recordMap[cid] || [];
+                userRecs.forEach(r => {
+                    let d = new Date(r.date);
+                    if(isValidDate(r.date) && d.getMonth() === bMonth && d.getFullYear() === bYear && r.prod === prod && !r.isGap) {
+                        bSelected[r.shift].add(d.getDate());
+                        if(r.pay === 'paid') bPaidSet.add(`${r.shift}_${d.getDate()}`);
+                    }
+                });
+            }
+            renderBulkCalendar();
+        }
+
+        function toggleBulkDay(day) {
+            if(!document.getElementById('bCust').value) return showToast("Select Customer First!", true);
+            if(bSelected[bShift].has(day)) bSelected[bShift].delete(day);
+            else bSelected[bShift].add(day);
+            renderBulkCalendar();
+        }
+
+        // Calendar Grid 
+        function renderBulkCalendar() {
+            let firstDay = new Date(bYear, bMonth, 1).getDay();
+            let daysInMonth = new Date(bYear, bMonth + 1, 0).getDate();
+            
+            let html = '';
+            ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].forEach(d => {
+                html += `<div class="bulk-day-header">${d}</div>`;
+            });
+            for(let i=0; i<firstDay; i++) html += `<div class="bulk-day empty"></div>`;
+            
+            for(let i=1; i<=daysInMonth; i++) {
+                let isSel = bSelected[bShift].has(i);
+                let isPaid = bPaidSet.has(`${bShift}_${i}`);
+                let cssClass = isPaid ? 'bulk-day paid-entry' : (isSel ? 'bulk-day selected' : 'bulk-day');
+                html += `<div class="${cssClass}" onclick="toggleBulkDay(${i})">${i}</div>`;
+            }
+            document.getElementById('bulkGrid').innerHTML = html;
+            document.getElementById('bulkSummary').innerText = `M: ${bSelected['Morning'].size} | E: ${bSelected['Evening'].size}`;
+        }
+
+        // O(1) Indexed Bulk Save (Fix Null Index Bug)
+        function saveBulkEntries() {
+            let btn = document.getElementById('btnSaveBulk');
+            let cid = document.getElementById('bCust').value;
+            let prod = document.getElementById('bProd').value;
+            let rate = parseFloat(document.getElementById('bRate').value);
+            
+            if(!cid) return showToast("Select Customer", true);
+            if(isNaN(rate) || rate < 0 || rate > 10000) return showToast("Invalid Rate", true);
+            
+            let parsed = parseQuantity(document.getElementById('bQty').value, rate);
+            if(!parsed || parsed.isGap) return showToast("Invalid Default Quantity", true);
+
+            btn.disabled = true;
+            let daysInMonth = new Date(bYear, bMonth + 1, 0).getDate();
+            let added=0, updated=0, removed=0, skipped=0;
+
+            let existingIndex = new Map();
+            records.forEach((r, i) => { if(r.cid === cid) existingIndex.set(`${r.date}_${r.shift}_${r.prod}`, i); });
+            
+            let idsToDelete = new Set(); // Prevent null index shift bug
+
+            ['Morning', 'Evening'].forEach(shift => {
+                for(let d=1; d<=daysInMonth; d++) {
+                    let dateStr = `${bYear}-${String(bMonth+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+                    let compKey = `${dateStr}_${shift}_${prod}`;
+                    let idx = existingIndex.has(compKey) ? existingIndex.get(compKey) : -1;
+                    let isSel = bSelected[shift].has(d);
+
+                    if(isSel) {
+                        if(idx >= 0) {
+                            if(records[idx].pay !== 'paid') {
+                                records[idx].qty = parsed.text; records[idx].rate = rate; records[idx].amt = parsed.amt;
+                                records[idx].isGap = false; records[idx].ltr = parsed.ltr;
+                                updated++;
+                            } else skipped++;
+                        } else {
+                            records.push({id: getUID(), cid, date: dateStr, shift, prod, qty: parsed.text, rate, amt: parsed.amt, isGap: false, ltr: parsed.ltr, pay: 'unpaid'});
+                            added++;
+                        }
+                    } else {
+                        if(idx >= 0) {
+                            if(records[idx].pay !== 'paid') { idsToDelete.add(records[idx].id); removed++; }
+                            else skipped++;
+                        }
+                    }
+                }
+            });
+            
+            records = records.filter(r => !idsToDelete.has(r.id)); // Safe batch delete
+            saveData(); closeModal('bulkEntryModal');
+            let msg = `Saved! Add:${added}, Upd:${updated}, Del:${removed}`;
+            if(skipped > 0) msg += ` (Skipped ${skipped} paid)`;
+            showToast(msg);
+            setTimeout(() => btn.disabled = false, 500);
+        }
+
+        // --- 5. CUSTOMER LOGIC (Soft Delete & Validation) ---
+        function addCustomer() {
+            let name = document.getElementById('cName').value.trim();
+            let phone = document.getElementById('cPhone').value.trim();
+            let btn = document.getElementById('btnAddCust');
+            
+            if(name.length < 2) return showToast("Invalid name", true);
+            if(!phone.match(/^[6-9]\d{9}$/)) return showToast("Enter a valid 10-digit Indian phone", true);
+            if(customers.some(c => c.phone === phone && !c.isDeleted)) return showToast("Phone already registered!", true);
+
+            btn.disabled = true;
+            customers.push({ id: getUID(), name, phone, isDeleted: false });
+            customers.sort((a,b) => a.name.localeCompare(b.name)); 
+            saveData();
+            
+            document.getElementById('cName').value = ''; document.getElementById('cPhone').value = '';
+            showToast("Customer Added!"); setTimeout(() => btn.disabled = false, 500);
+        }
+
+        function promptEditCustomer(id) {
+            let c = customerMap[id];
+            if(!c || c.isDeleted) return;
+            document.getElementById('editCustId').value = c.id;
+            document.getElementById('editCName').value = c.name;
+            document.getElementById('editCPhone').value = c.phone;
+            openModal('editCustModal');
+        }
+
+        function updateCustomer() {
+            let id = document.getElementById('editCustId').value;
+            let name = document.getElementById('editCName').value.trim();
+            let phone = document.getElementById('editCPhone').value.trim();
+            
+            if(name.length < 2) return showToast("Invalid name", true);
+            if(!phone.match(/^[6-9]\d{9}$/)) return showToast("Enter valid 10-digit phone", true);
+            if(customers.some(c => c.phone === phone && c.id !== id && !c.isDeleted)) return showToast("Phone belongs to another customer!", true);
+
+            let idx = customers.findIndex(x => x.id === id);
+            if(idx !== -1) {
+                customers[idx].name = name; customers[idx].phone = phone;
+                customers.sort((a,b) => a.name.localeCompare(b.name));
+                saveData(); closeModal('editCustModal'); showToast("Customer Updated!");
+            }
+        }
+
+        function promptDeleteCustomer(id) {
+            showConfirmModal("Delete Customer", `This will archive ${sanitize(customerMap[id].name)}. Past analytics will be kept safe.`, "Archive User", "var(--danger-red)", () => {
+                let c = customers.find(x => x.id === id);
+                if(c) { c.isDeleted = true; saveData(); showToast("Customer Archived", true); }
+            });
+        }
+
+        function renderCustomers() {
+            let cList = document.getElementById('custList'), eList = document.getElementById('eCust'), eVal = eList.value;
+            let cHtml = '', eHtml = '<option value="">Select Customer...</option>';
+            
+            customers.filter(c => !c.isDeleted).forEach(c => {
+                let sName = sanitize(c.name);
+                eHtml += `<option value="${c.id}">${sName}</option>`;
+                cHtml += `<div class="khata-item"><div class="khata-details"><b>${sName}</b><small>+91 ${sanitize(c.phone)}</small></div>
+                    <div style="display:flex; gap:5px;">
+                        <button class="btn-primary btn-warning" style="padding:6px 12px; border-radius:6px;" onclick="promptEditCustomer('${c.id}')"><i class="fas fa-pen"></i></button>
+                        <button class="btn-danger" style="padding:6px 12px; border-radius:6px; color:white;" onclick="promptDeleteCustomer('${c.id}')"><i class="fas fa-trash"></i></button>
+                    </div></div>`;
+            });
+            cList.innerHTML = cHtml || '<p style="text-align:center; color:#888;">No Active Customers</p>';
+            eList.innerHTML = eHtml; eList.value = eVal;
+        }
+
+        // --- 6. STRICT SINGLE ENTRY CREATION ---
+        function saveEntry() {
+            let btn = document.getElementById('btnSaveEntry');
+            let cid = document.getElementById('eCust').value, date = document.getElementById('eDate').value;
+            let shift = document.getElementById('eShift').value, prod = document.getElementById('eProd').value;
+            let rate = parseFloat(document.getElementById('eRate').value);
+            
+            if(!cid) return showToast("Select customer", true);
+            if(isNaN(rate) || rate < 0 || rate > 10000) return showToast("Invalid Rate", true);
+            if(!isValidDate(date)) return showToast("Invalid Date", true);
+            
+            let parsed = parseQuantity(document.getElementById('eQty').value, rate);
+            if(!parsed) return showToast("Invalid Quantity (L/ml/kg/g)", true);
+
+            // Strict Block
+            if(records.some(r => r.cid === cid && r.date === date && r.shift === shift && r.prod === prod)) {
+                return showToast("Entry already exists for this shift! Edit it instead.", true);
+            }
+
+            btn.disabled = true;
+            records.push({ id: getUID(), cid, date, shift, prod, qty: parsed.text, rate, amt: parsed.amt, isGap: parsed.isGap, ltr: parsed.ltr, pay: parsed.isGap ? 'gap' : document.getElementById('ePay').value });
+            saveData(); document.getElementById('eQty').value = '';
+            showToast("Saved!"); switchTab(0); setTimeout(() => btn.disabled = false, 500);
+        }
+
+        // --- 7. ADVANCED ENTRY EDIT ---
+        function promptEditEntry(id) {
+            let r = records.find(x => x.id === id);
+            if(!r) return;
+            document.getElementById('editEntryId').value = r.id;
+            document.getElementById('editDate').value = r.date;
+            document.getElementById('editShift').value = r.shift;
+            document.getElementById('editProd').value = r.prod;
+            document.getElementById('editQty').value = r.isGap ? 'Gap' : r.qty;
+            document.getElementById('editRate').value = r.rate;
+            document.getElementById('editPay').value = r.isGap ? 'gap' : r.pay;
+            openModal('editEntryModal');
+        }
+
+        function updateEntry() {
+            let id = document.getElementById('editEntryId').value;
+            let idx = records.findIndex(x => x.id === id);
+            if(idx === -1) return;
+
+            let rate = parseFloat(document.getElementById('editRate').value);
+            let date = document.getElementById('editDate').value;
+            let shift = document.getElementById('editShift').value;
+            let prod = document.getElementById('editProd').value;
+            
+            if(isNaN(rate) || rate < 0 || rate > 10000) return showToast("Invalid Rate", true);
+            if(!isValidDate(date)) return showToast("Invalid Date", true);
+
+            let parsed = parseQuantity(document.getElementById('editQty').value, rate);
+            if(!parsed) return showToast("Invalid Quantity", true);
+
+            if(records.some(r => r.id !== id && r.cid === records[idx].cid && r.date === date && r.shift === shift && r.prod === prod)) {
+                return showToast("Duplicate Entry Blocked!", true);
+            }
+
+            records[idx].date = date; records[idx].shift = shift; records[idx].prod = prod;
+            records[idx].qty = parsed.text; records[idx].rate = rate; records[idx].amt = parsed.amt;
+            records[idx].isGap = parsed.isGap; records[idx].ltr = parsed.ltr;
+            records[idx].pay = parsed.isGap ? 'gap' : document.getElementById('editPay').value;
+
+            saveData(); closeModal('editEntryModal'); showToast("Updated!");
+        }
+
+        function deleteEntry(id) { 
+            showConfirmModal("Delete Entry", "Remove this record permanently?", "Delete", "var(--danger-red)", () => {
+                records = records.filter(r => r.id !== id); saveData(); showToast("Deleted", true); 
+            });
+        }
+
+        // --- 8. HISTORY LEDGER ---
+        function changeMonth(dir) {
+            curMonth += dir;
+            if(curMonth < 0) { curMonth = 11; curYear--; } else if(curMonth > 11) { curMonth = 0; curYear++; }
+            historyRenderLimit = 20; // Reset load more
+            refreshAll();
+        }
+
+        function debounceSearch() { clearTimeout(searchTimer); historyRenderLimit = 20; searchTimer = setTimeout(renderHistory, 250); }
+        function loadMoreHistory() { historyRenderLimit += 20; renderHistory(); }
+
+        const shiftWeight = { 'Morning': 1, 'Afternoon': 2, 'Evening': 3 }; // Strict Shift Sorting
+
+        function renderHistory() {
+            let q = document.getElementById('searchHist').value.toLowerCase();
+            let hList = document.getElementById('historyList');
+            let btnMore = document.getElementById('btnLoadMoreHist');
+            let frag = document.createDocumentFragment();
+            
+            // Show only active customers OR deleted customers who still have Unpaid Due
+            let activeCids = new Set(customers.filter(c => !c.isDeleted).map(c => c.id));
+            let dueDeletedCids = new Set(customers.filter(c => c.isDeleted && (recordMap[c.id] || []).some(r => r.pay === 'unpaid')).map(c => c.id));
+            let combinedCids = new Set([...activeCids, ...dueDeletedCids]);
+            
+            let filteredCids = Array.from(combinedCids).filter(cid => {
+                let c = customerMap[cid];
+                let cName = c ? c.name.toLowerCase() : "";
+                let cPhone = c ? c.phone : "";
+                return cName.includes(q) || cPhone.includes(q);
+            });
+
+            // Pagination slice
+            let pagedCids = filteredCids.slice(0, historyRenderLimit);
+            btnMore.style.display = (filteredCids.length > historyRenderLimit) ? 'block' : 'none';
+
+            pagedCids.forEach(cid => {
+                let c = customerMap[cid];
+                let displayName = c ? sanitize(c.name) + (c.isDeleted ? " (Archived)" : "") : "Deleted";
+                let userRecs = recordMap[cid] || []; 
+                let due = 0;
+                userRecs.forEach(r => { if(r.pay === 'unpaid') due += r.amt; }); 
+                
+                let monthRecs = userRecs.filter(r => {
+                    let d = new Date(r.date); return isValidDate(r.date) && d.getMonth() === curMonth && d.getFullYear() === curYear;
+                });
+
+                let div = document.createElement('div');
+                div.className = 'main-card'; div.style.padding = '15px';
+                
+                let waText = encodeURIComponent(`🥛 *Sitaram Dairy Bill*\nMonth: ${curMonth+1}/${curYear}\nTotal Outstanding: ₹${due.toFixed(2)}\nPlease pay your dues.`);
+                let waLink = (c && !c.isDeleted) ? `<a href="https://wa.me/91${c.phone}?text=${waText}" target="_blank" style="color:#25D366; font-size:1.2rem; text-decoration:none;"><i class="fab fa-whatsapp"></i></a>` : '';
+
+                let html = `<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; border-bottom:1px solid var(--border-color); padding-bottom:5px;">
+                    <div><b>${displayName}</b><br><b style="color:${due>0 ? 'var(--danger-red)' : 'var(--success-green)'; font-size:0.85rem;}">Lifetime Due: ₹${due.toFixed(2)}</b></div>
+                    ${waLink}
+                </div>`;
+                
+                if(!monthRecs.length) html += `<small>No entries this month.</small>`;
+                else {
+                    monthRecs.sort((a,b) => {
+                        let diff = new Date(b.date) - new Date(a.date);
+                        if(diff === 0) return (shiftWeight[b.shift] || 0) - (shiftWeight[a.shift] || 0); // Evening > Afternoon > Morning
+                        return diff;
+                    }).forEach(r => {
+                        let dStr = r.date.split('-').reverse().join('/');
+                        let clr = (r.pay === 'paid' || r.isGap) ? 'var(--success-green)' : 'var(--danger-red)';
+                        html += `<div style="display:flex; justify-content:space-between; font-size:0.85rem; padding:4px 0;">
+                            <span>${dStr} | ${r.shift[0]} | ${sanitize(r.prod)} | ${sanitize(r.qty)}</span>
+                            <span style="color:${clr}; font-weight:bold;">₹${r.amt.toFixed(2)}
+                                <i class="fas fa-pen" style="color:#666; cursor:pointer; margin-left:8px;" onclick="promptEditEntry('${r.id}')"></i>
+                                <i class="fas fa-trash" style="color:red; cursor:pointer; margin-left:8px;" onclick="deleteEntry('${r.id}')"></i></span>
+                        </div>`;
+                    });
+                }
+                div.innerHTML = html; frag.appendChild(div);
+            });
+            hList.innerHTML = ''; hList.appendChild(frag);
+        }
+
+        // --- 9. DASHBOARD ANALYTICS ---
+        function refreshAll() {
+            renderCustomers(); renderHistory();
+            document.getElementById('dashMonth').innerText = `${["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"][curMonth]} ${curYear}`;
+            
+            let tMilk = 0, tDue = 0;
+            let daysInMonth = new Date(curYear, curMonth + 1, 0).getDate(); 
+            let dailyData = Array(daysInMonth).fill(0);
+
+            records.forEach(r => {
+                if(r.pay === 'unpaid') tDue += r.amt; 
+                let d = new Date(r.date);
+                if(isValidDate(r.date) && d.getMonth() === curMonth && d.getFullYear() === curYear) {
+                    if(r.prod === 'Doodh' && !r.isGap) {
+                        tMilk += r.ltr;
+                        let day = d.getDate();
+                        if(day >= 1 && day <= daysInMonth) dailyData[day-1] += r.ltr;
+                    }
+                }
+            });
+
+            document.getElementById('dashMilk').innerText = tMilk.toFixed(2) + ' L';
+            document.getElementById('dashDue').innerText = '₹ ' + (Math.round(tDue*100)/100).toFixed(2);
+
+            try {
+                if(typeof Chart !== 'undefined') {
+                    if(chartInst) {
+                        chartInst.data.labels = Array.from({length:daysInMonth}, (_,i) => i+1);
+                        chartInst.data.datasets[0].data = dailyData;
+                        chartInst.update(); // Smooth update without destroy
+                    } else {
+                        chartInst = new Chart(document.getElementById('milkChart').getContext('2d'), {
+                            type: 'bar',
+                            data: { labels: Array.from({length:daysInMonth}, (_,i) => i+1), datasets: [{ label: 'Milk (L)', data: dailyData, backgroundColor: '#1565C0', borderRadius: 4 }] },
+                            options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true } } }
+                        });
+                    }
+                }
+            } catch (e) { console.warn("Chart loading failed.", e); }
+        }
+
+        // --- 10. SECURE CSV EXPORT (No Gaps) ---
+        function exportCSV() {
+            let monthRecords = records.filter(r => {
+                let d = new Date(r.date); return isValidDate(r.date) && d.getMonth() === curMonth && d.getFullYear() === curYear && !r.isGap;
+            });
+            
+            if(!monthRecords.length) return showToast("No valid data for this month", true);
+            let csv = 'Date,Customer,Phone,Product,Shift,Quantity,Rate,Amount,Status\n';
+            
+            monthRecords.forEach(r => {
+                let c = customerMap[r.cid]; 
+                let cName = c ? c.name : 'Deleted Customer';
+                let cPhone = c ? c.phone : 'N/A';
+                csv += `${safeCSV(r.date)},${safeCSV(cName)},${safeCSV(cPhone)},${safeCSV(r.prod)},${safeCSV(r.shift)},${safeCSV(r.qty)},${r.rate},${r.amt},${safeCSV(r.pay)}\n`;
+            });
+
+            let a = document.createElement('a');
+            let url = URL.createObjectURL(new Blob(['\uFEFF' + csv], {type: 'text/csv;charset=utf-8;'})); 
+            a.href = url; a.download = `SitaramDairy_Month_${curMonth+1}_${curYear}.csv`; 
+            a.click(); 
+            setTimeout(() => { URL.revokeObjectURL(url); }, 1000); 
+            showToast("Exported Current Month!");
+        }
+    </script>
 </body>
 </html>
